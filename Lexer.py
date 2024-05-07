@@ -1,4 +1,3 @@
-import
 '''
 Grammar:
 
@@ -145,7 +144,7 @@ class Lexer:
         return Tokens
 
 
-string = "aa2adf3asdfad345*E"
+string = "aa2adf3asd(fad)345*E"
 Lexer = Lexer(string)
 
 for item in Lexer.Tokens:
