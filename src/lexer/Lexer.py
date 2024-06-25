@@ -1,4 +1,4 @@
-'''
+"""
 Grammar:
 
 E => T
@@ -8,13 +8,13 @@ T => int
     | T * T
     | T / T
     |(E)
-    
+
     5 + 3
     625 / 5
     6 - 3 * 8
     (3 + 5) * 10
-    
-Tokens: 
+
+Tokens:
 name <id, type>
 
 keywords < if | while | for | else | let | in , keywords >
@@ -27,7 +27,7 @@ constants: < PI | E , const >
 
 
 
-'''
+"""
 
 
 class Token:
