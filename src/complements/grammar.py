@@ -1,16 +1,18 @@
 from pycompiler import Grammar
+from ast_for_hulk import *
 
 G = Grammar()
 
 # Terminals
 semi, comma, dot, colon = G.Terminals("; , . :")
 andt, ort, nott = G.Terminals("& | !")
-opar, cpar, ocur, ccur, obr, cbr, rarrow, at, atat, sharp, dstr_assign, dble_bar = G.Terminals("( ) { } [ ] => @ @@ # := ||")
-equal, plus, minus, star, starstar, div, sqr, mod, less, leq, great, geq, noteq, eqeq = G.Terminals(
-    "= + - * ** / ^ % < <= > >= != ==")
+opar, cpar, ocur, ccur, obr, cbr = G.Terminals("( ) { } [ ]")
+rarrow, at, atat, sharp, dstr_assign, dble_bar = G.Terminals("=> @ @@ # := ||")
+equal, plus, minus, star, starstar, div, sqr, mod = G.Terminals("= + - * ** / ^ %")
+less, leq, great, geq, noteq, eqeq = G.Terminals("< <= > >= != ==")
 
-new, inherits, self, typet, function, protocol, extends = G.Terminals(
-    "new inherits self type function protocol extends")
+new, inherits, self, typet = G.Terminals("new inherits self type")
+function, protocol, extends = G.Terminals("function protocol extends")
 ift, elset, elift, whilet, fort, ranget, let, inx, ist, asx = G.Terminals("if else elif while for range let in is as")
 identifier, number, string, boolean = G.Terminals("identifier number string bool")
 
@@ -31,10 +33,10 @@ method_decl_col, typed_method_decl_list, typed_method_decl = G.NonTerminals(
     "<method_decl_col> <typed_method_decl_list> <typed_method_decl>")
 molecule, atom = G.NonTerminals("<molecule> <atom>")
 elifn, var_decl = G.NonTerminals("<elifn> <var_decl>")
-string_exp, single_exp = G.NonTerminal("<string_exp> <single_exp>")
-condition, disjunction, not_comp_exp, comparer = G.NonTerminal("<condition> <disjunction> <not_comp_exp> <comparer>")
+string_exp, single_exp = G.NonTerminals("<string_exp> <single_exp>")
+condition, disjunction, not_comp_exp, comparer = G.NonTerminals("<condition> <disjunction> <not_comp_exp> <comparer>")
 arith, term, factor, unary_exp = G.NonTerminals("<arith_expr> <term> <factor> <unary_exp>")
-invoque_func = G.NonTerminals("<invoque_func>")
+invoque_func = G.NonTerminal("<invoque_func>")
 loop, assignment = G.NonTerminals("<loop> <assignment>")
 
 # Productions
@@ -184,7 +186,7 @@ atom %= invoque_func
 atom %= exp_block
 atom %= opar + simple_exp + cpar
 atom %= obr + args + cbr
-atom %= obr + simple_exp + dble_bar + identifier + int + simple_exp + cbr
+atom %= obr + simple_exp + dble_bar + identifier + inx + simple_exp + cbr
 
 invoque_func %= identifier + opar + args + cpar
 
