@@ -70,9 +70,8 @@ class NotNode(ExpNode):
 
 
 class ConcatNode(ExpNode):
-    def __init__(self, left, center, right):
+    def __init__(self, left, right):
         self.left = left
-        self.center = center
         self.right = right
 
 
@@ -175,8 +174,8 @@ class IsNode(ExpNode):
 
 
 class AsNode(ExpNode):
-    def __init__(self, left, type_name):
-        self.left = left
+    def __init__(self, exp, type_name):
+        self.exp = exp
         self.type_name = type_name
 
 
