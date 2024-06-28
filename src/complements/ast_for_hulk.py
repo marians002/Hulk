@@ -40,7 +40,7 @@ class ProtocolNode(DeclarationNode):
         self.method_decl_col = method_decl_col
 
 
-class DeclareVariableNode(Node):
+class DeclareVarNode(Node):
     def __init__(self, identifier, type_name, value):
         self.identifier = identifier
         self.type_name = type_name
@@ -53,15 +53,15 @@ class BlockNode(ExpNode):
 
 
 class AndNode(ExpNode):
-    def __init__(self, left, right):
-        self.left = left
-        self.right = right
+    def __init__(self, left_exp, right_exp):
+        self.left_exp = left_exp
+        self.right_exp = right_exp
 
 
 class OrNode(ExpNode):
-    def __init__(self, left, right):
-        self.left = left
-        self.right = right
+    def __init__(self, left_exp, right_exp):
+        self.left_exp = left_exp
+        self.right_exp = right_exp
 
 
 class NotNode(ExpNode):
@@ -70,81 +70,81 @@ class NotNode(ExpNode):
 
 
 class ConcatNode(ExpNode):
-    def __init__(self, left, right):
-        self.left = left
-        self.right = right
+    def __init__(self, left_exp, right_exp):
+        self.left_exp = left_exp
+        self.right_exp = right_exp
 
 
 class EqualNode(ExpNode):
-    def __init__(self, left, right):
-        self.left = left
-        self.right = right
+    def __init__(self, left_exp, right_exp):
+        self.left_exp = left_exp
+        self.right_exp = right_exp
 
 
 class NotEqualNode(ExpNode):
-    def __init__(self, left, right):
-        self.left = left
-        self.right = right
+    def __init__(self, left_exp, right_exp):
+        self.left_exp = left_exp
+        self.right_exp = right_exp
 
 
 class LessThanNode(ExpNode):
-    def __init__(self, left, right):
-        self.left = left
-        self.right = right
+    def __init__(self, left_exp, right_exp):
+        self.left_exp = left_exp
+        self.right_exp = right_exp
 
 
 class LessEqualNode(ExpNode):
-    def __init__(self, left, right):
-        self.left = left
-        self.right = right
+    def __init__(self, left_exp, right_exp):
+        self.left_exp = left_exp
+        self.right_exp = right_exp
 
 
 class GreaterThanNode(ExpNode):
-    def __init__(self, left, right):
-        self.left = left
-        self.right = right
+    def __init__(self, left_exp, right_exp):
+        self.left_exp = left_exp
+        self.right_exp = right_exp
 
 
 class GreaterEqualNode(ExpNode):
-    def __init__(self, left, right):
-        self.left = left
-        self.right = right
+    def __init__(self, left_exp, right_exp):
+        self.left_exp = left_exp
+        self.right_exp = right_exp
 
 
 class PlusNode(ExpNode):
-    def __init__(self, left, right):
-        self.left = left
-        self.right = right
+    def __init__(self, left_exp, right_exp):
+        self.left_exp = left_exp
+        self.right_exp = right_exp
 
 
 class MinusNode(ExpNode):
-    def __init__(self, left, right):
-        self.left = left
-        self.right = right
+    def __init__(self, left_exp, right_exp):
+        self.left_exp = left_exp
+        self.right_exp = right_exp
 
 
 class ProductNode(ExpNode):
-    def __init__(self, left, right):
-        self.left = left
-        self.right = right
+    def __init__(self, left_exp, right_exp):
+        self.left_exp = left_exp
+        self.right_exp = right_exp
 
 
 class DivisionNode(ExpNode):
-    def __init__(self, left, right):
-        self.left = left
-        self.right = right
+    def __init__(self, left_exp, right_exp):
+        self.left_exp = left_exp
+        self.right_exp = right_exp
 
 
 class ModNode(ExpNode):
-    def __init__(self, left, right):
-        self.left = left
-        self.right = right
+    def __init__(self, left_exp, right_exp):
+        self.left_exp = left_exp
+        self.right_exp = right_exp
 
 
 class PowNode(ExpNode):
-    def __init__(self, left, right):
-        self.left = left
-        self.right = right
+    def __init__(self, left_exp, right_exp):
+        self.left_exp = left_exp
+        self.right_exp = right_exp
 
 
 class NegativeNode(ExpNode):
@@ -168,8 +168,8 @@ class BoolNode(ExpNode):
 
 
 class IsNode(ExpNode):
-    def __init__(self, left, type_name):
-        self.left = left
+    def __init__(self, left_exp, type_name):
+        self.left_exp = left_exp
         self.type_name = type_name
 
 
@@ -184,7 +184,7 @@ class VarNode(ExpNode):
         self.identifier = identifier
 
 
-class FunctionCallNode(ExpNode):
+class InvoqueFuncNode(ExpNode):
     def __init__(self, identifier, args):
         self.identifier = identifier
         self.args = args
