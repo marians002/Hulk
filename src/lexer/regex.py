@@ -1,9 +1,9 @@
-from lexer.automata import *
-from cmp.ast import *
-from cmp.pycompiler import Grammar
-from cmp.utils import Token
-from parser.LR1_parser_generator import LR1Parser
-from cmp.evaluation import evaluate_reverse_parse
+from automata import *
+from ..cmp.ast import *
+from ..cmp.pycompiler import Grammar
+from ..cmp.utils import Token
+from ..cmp.tools.parsing import LR1Parser
+from ..cmp.evaluation import evaluate_reverse_parse
 
 
 class EpsilonNode(AtomicNode):

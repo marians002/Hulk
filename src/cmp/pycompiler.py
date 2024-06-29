@@ -190,7 +190,6 @@ class Epsilon(Terminal, Sentence):
     def __init__(self, grammar):
         super().__init__('epsilon', grammar)
 
-
     def __str__(self):
         return "e"
 
@@ -215,6 +214,7 @@ class Epsilon(Terminal, Sentence):
     @property
     def IsEpsilon(self):
         return True
+
 
 class Production(object):
 
