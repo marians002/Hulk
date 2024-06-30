@@ -4,6 +4,7 @@ from ..cmp.pycompiler import Grammar
 from ..cmp.utils import Token
 from ..cmp.tools.parsing import LR1Parser
 from ..cmp.evaluation import evaluate_reverse_parse
+from ..cmp.grammar import *
 
 
 class EpsilonNode(AtomicNode):
@@ -62,37 +63,6 @@ class RangeNode(Node):
         value.append(self.last)
         return value      
           
-    
-
-
-G = Grammar()
-
-E = G.NonTerminal('E', True)
-T, F, A, S = G.NonTerminals('T F A S')
-pipe, star, plus, minus, quest, opar, cpar, obrack, cbrack, symbol, epsilon = G.Terminals('| * + - ? ( ) [ ] symbol ε')
-
-
-E %= T, lambda h,s: s[1]
-E %= E + pipe + T, lambda h,s: UnionNode(s[1],s[3])
-
-T %= F, lambda h,s: s[1]
-T %= T + F, lambda h,s: ConcatNode(s[1],s[2])
-
-F %= A, lambda h,s: s[1]
-F %= A + star, lambda h,s: ClosureNode(s[1])
-F %= A + plus, lambda h,s: PositiveClosureNode(s[1])
-F %= A + quest, lambda h,s: ZeroOrOneNode(s[1])
-
-A %= symbol, lambda h,s: SymbolNode(s[1])
-A %= epsilon, lambda h,s: EpsilonNode(s[1])                                                
-A %= opar + E + cpar, lambda h,s: s[2]
-A %= obrack + S + cbrack, lambda h,s: CharClassNode(s[2])
-
-S %= symbol, lambda h,s: [SymbolNode(s[1])]
-S %= symbol + S, lambda h,s: [SymbolNode(s[1])] + s[2]
-S %= symbol + minus + symbol, lambda h,s: RangeNode(SymbolNode(s[1]),SymbolNode(s[3])).evaluate()
-S %= symbol + minus + symbol + S, lambda h,s: RangeNode(SymbolNode(s[1]),SymbolNode(s[3])).evaluate() + s[4]
-
 
 regex_parser = LR1Parser(G)
 
@@ -109,8 +79,8 @@ class Regex:
 
     def _tokenize_regex(self):
         tokens = []
-
-        fixed_tokens = {lex: Token(lex,G[lex]) for lex in '| * + - ? ( ) [ ] symbol ε'.split()}
+        terminals = ['; , . : & | ! ( ) { } [ ] => @ @@ # := || = + - * ** / ^ % < <= > >= != == new inherits self type function protocol extends if else elif while for range let in is as identifier number string bool'] 
+        fixed_tokens = {lex: Token(lex,G[lex]) for lex in terminals.split()}
     
         char_class = escape = False    
 

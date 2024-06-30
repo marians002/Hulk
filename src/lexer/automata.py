@@ -1,4 +1,5 @@
-from ..cmp.utils import ContainerSet, DisjointSet
+from ..cmp.utils import ContainerSet
+from ..cmp.utils import DisjointSet
 
 
 class NFA:
