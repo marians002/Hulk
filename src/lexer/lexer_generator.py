@@ -59,8 +59,9 @@ class Lexer:
             idx, token_type = priority[0]
             
             text = text[len(lex):]
+            if(text[0]== " "):(row,column) = (row,column+1)
             if(lex == '\n'): (row,column) = (row+1,0)
-            else: (row,column) = (row,column+1)
+            else: (row,column) = (row,column+len(lex))
             yield lex, token_type ,(row,column)
         
         yield '$', self.eof, (0,0)
