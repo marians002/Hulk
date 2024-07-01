@@ -115,9 +115,10 @@ class Token:
         Token's type.
     """
 
-    def __init__(self, lex, token_type):
+    def __init__(self, lex, token_type, position=None):
         self.lex = lex
         self.token_type = token_type
+        self.position = position
 
     def __str__(self):
         return f'{self.token_type}: {self.lex}'

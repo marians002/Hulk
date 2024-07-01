@@ -48,7 +48,7 @@ class Lexer:
     
     
     def _tokenize(self, text):
-        (column,row) = (0,0)
+        (row,column) = (0,0)
         while text:
             final_state, lex = self._walk(text)
             
@@ -59,12 +59,12 @@ class Lexer:
             idx, token_type = priority[0]
             
             text = text[len(lex):]
-            if(lex == '\n'): (column,row) = (0, row+1)
-            else: (column,row) = (column+1,row)
-            yield lex, token_type #, (column, row)
+            if(lex == '\n'): (row,column) = (row+1,0)
+            else: (row,column) = (row,column+1)
+            yield lex, token_type ,(row,column)
         
-        yield '$', self.eof
+        yield '$', self.eof, (0,0)
         
     
     def __call__(self, text):
-        return [ Token(lex, ttype) for lex, ttype in self._tokenize(text) ]
+        return [ Token(lex, ttype, position) for lex, ttype, position  in self._tokenize(text) ]
