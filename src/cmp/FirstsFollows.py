@@ -1,4 +1,8 @@
-from ..cmp.utils import ContainerSet
+""" import sys
+from sys import path
+sys.path.append('/home/carlosbreso/Data/Code/Python/HulkCompiler/Hulk/src') """
+# recuerda definir la ruta de los modulos
+from cmp.utils import ContainerSet
 
 
 # Computes First(alpha), given First(Vt) and First(Vn) 

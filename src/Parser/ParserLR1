@@ -1,9 +1,13 @@
-from ..cmp.pycompiler import Grammar
-from ..cmp.pycompiler import Item
-from ..cmp.automata import State
-from ..cmp.utils import ContainerSet
-from ..cmp.automata import State, multiline_formatter
-from FirstFollows import compute_local_first, compute_firsts
+""" import sys
+sys.path.append('/home/carlosbreso/Data/Code/Python/HulkCompiler/Hulk/src') """
+#para importar tienes que definir la ruta de donde estan los modulos
+from cmp.pycompiler import Grammar
+from cmp.pycompiler import Item
+from cmp.automata import State
+from cmp.utils import ContainerSet
+from cmp.automata import State, multiline_formatter
+from cmp.FirstsFollows import compute_local_first, compute_firsts
+
 
 class ShiftReduceParser:
     SHIFT = 'SHIFT'
@@ -20,10 +24,11 @@ class ShiftReduceParser:
     def _build_parsing_table(self):
         raise NotImplementedError()
 
-    def __call__(self, w):
+    def __call__(self, w, get_shift_reduce = False):
         stack = [ 0 ]
         cursor = 0
         output = []
+        operations = []
         
         while True:
             state = stack[-1]
@@ -38,6 +43,7 @@ class ShiftReduceParser:
                 case self.SHIFT:
                     stack.append(lookahead)
                     stack.append(tag)
+                    operations.append(self.SHIFT)
                     cursor += 1
             # Your code here!!! (Reduce case)
                 case self.REDUCE:
@@ -49,14 +55,17 @@ class ShiftReduceParser:
                     stack.append(X.Name)
                     stack.append(self.goto[l,X])
                     output.append(production)
+                    operations.append(self.REDUCE)
             # Your code here!!! (OK case)
                 case self.OK:
                     break
             # Your code here!!! (Invalid case)
                 case _:
                     raise Exception
-        
-        return output
+        if not get_shift_reduce:
+            return output
+        else:
+            return output, operations
     
 class LR1Parser(ShiftReduceParser):
     
@@ -200,23 +209,3 @@ class LR1Parser(ShiftReduceParser):
         
         automaton.set_formatter(multiline_formatter)
         return automaton
-
-    
-    
-G = Grammar()
-E = G.NonTerminal('E', True)
-T,F,X,Y = G.NonTerminals('T F X Y')
-plus, minus, star, div, opar, cpar, num = G.Terminals('+ - * / ( ) num')
-
-E %= T + plus + E | T
-T %= F + star + T | F
-F %= num | opar + E + cpar
-
-
-parser = LR1Parser(G)
-
-derivation = parser([num, plus, num, star, num, plus, num, G.EOF])
-
-#assert str(derivation) == '[A -> int, A -> int + A, A -> int, A -> int + A, E -> A = A]'
-
-print(derivation)
