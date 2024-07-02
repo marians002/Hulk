@@ -3,7 +3,7 @@ from ..cmp.pycompiler import Item
 from ..cmp.automata import State
 from ..cmp.utils import ContainerSet
 from ..cmp.automata import State, multiline_formatter
-from ..cmp.mytools import compute_local_first, compute_firsts
+from FirstFollows import compute_local_first, compute_firsts
 
 class ShiftReduceParser:
     SHIFT = 'SHIFT'

@@ -1,13 +1,4 @@
-from pycompiler import Symbol
-from pycompiler import NonTerminal
-from pycompiler import Terminal
-from pycompiler import EOF
-from pycompiler import Sentence, SentenceList
-from pycompiler import Epsilon
-from pycompiler import Production
-from pycompiler import Grammar
-from utils import pprint, inspect
-from utils import ContainerSet
+from ..cmp.utils import ContainerSet
 
 
 # Computes First(alpha), given First(Vt) and First(Vn) 
