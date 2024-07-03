@@ -1,4 +1,5 @@
-from ..cmp.utils import ContainerSet, DisjointSet
+from Hulk.src.cmp import ContainerSet
+from Hulk.src.cmp import DisjointSet
 
 
 class NFA:
