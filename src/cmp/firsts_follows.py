@@ -1,4 +1,4 @@
-from src.cmp.utils import ContainerSet
+from cmp.utils import ContainerSet
 
 
 # Computes First(alpha), given First(Vt) and First(Vn) 

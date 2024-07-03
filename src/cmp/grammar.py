@@ -1,6 +1,6 @@
-from src.cmp.pycompiler import Grammar
+from cmp.pycompiler import Grammar
 
-from src.cmp.ast_for_hulk import *
+from cmp.ast_for_hulk import *
 
 G = Grammar()
 
