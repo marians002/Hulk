@@ -1,5 +1,6 @@
-from pycompiler import Grammar
-from ast_for_hulk import *
+from src.cmp.pycompiler import Grammar
+
+from src.cmp.ast_for_hulk import *
 
 G = Grammar()
 
@@ -190,4 +191,9 @@ args %= simple_exp + args_list, lambda h, s: [s[1]] + s[2]
 
 args_list %= G.Epsilon, lambda h, s: []
 args_list %= comma + simple_exp + args_list, lambda h, s: [s[2]] + s[3]
+
+
+
+
+
 
