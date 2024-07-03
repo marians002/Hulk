@@ -53,6 +53,10 @@ class TypeBuilder:
 
     @visitor.when(TypeNode)
     def visit(self, node: TypeNode):
+
+        if node.identifier.startswith('<error>'):
+            return
+        
         try:
             self.current_type = self.context.get_type(node.identifier)
         except SemanticError as ex:
@@ -89,6 +93,10 @@ class TypeBuilder:
 
     @visitor.when(ProtocolNode)
     def visit(self, node: ProtocolNode):
+
+        if node.identifier.startswith('<error>'):
+            return
+
         try:
             self.current_type = self.context.get_type(node.identifier)
         except SemanticError as ex:
@@ -120,6 +128,10 @@ class TypeBuilder:
 
     @visitor.when(DeclareVarNode)
     def visit(self, node: DeclareVarNode):
+
+        if node.identifier.startswith('<error>'):
+            return
+
         try:
             var_t = self.context.get_type(node.type_name)
         except SemanticError as ex:
