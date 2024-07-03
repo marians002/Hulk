@@ -6,7 +6,7 @@ from cmp.pycompiler import Item
 from cmp.automata import State
 from cmp.utils import ContainerSet
 from cmp.automata import State, multiline_formatter
-from cmp.FirstsFollows import compute_local_first, compute_firsts
+from cmp.firsts_follows import compute_local_first, compute_firsts
 
 
 class ShiftReduceParser:
@@ -35,17 +35,17 @@ class ShiftReduceParser:
             lookahead = w[cursor]
             if self.verbose: print(stack, '<---||--->', w[cursor:])
                 
-            # Your code here!!! (Detect error)
+            # (Detect error)
             
             action, tag = self.action[state, lookahead]            
-            # Your code here!!! (Shift case)
+            # (Shift case)
             match action:
                 case self.SHIFT:
                     stack.append(lookahead)
                     stack.append(tag)
                     operations.append(self.SHIFT)
                     cursor += 1
-            # Your code here!!! (Reduce case)
+            # (Reduce case)
                 case self.REDUCE:
                     production = self.G.Productions[tag]
                     X, beta = production
@@ -56,10 +56,10 @@ class ShiftReduceParser:
                     stack.append(self.goto[l,X])
                     output.append(production)
                     operations.append(self.REDUCE)
-            # Your code here!!! (OK case)
+            # (OK case)
                 case self.OK:
                     break
-            # Your code here!!! (Invalid case)
+            # (Invalid case)
                 case _:
                     raise Exception
         if not get_shift_reduce:
@@ -80,9 +80,7 @@ class LR1Parser(ShiftReduceParser):
         for node in automaton:
             idx = node.idx
             for item in node.state:
-                # Your code here!!!
                 # - Fill `self.Action` and `self.Goto` according to `item`)
-                # - Feel free to use `self._register(...)`)
                 X = item.production.Left
                 
                 symbol = item.NextSymbol
@@ -118,12 +116,12 @@ class LR1Parser(ShiftReduceParser):
         lookaheads = ContainerSet()
         firsts = compute_firsts(G)
         firsts[G.EOF] = ContainerSet(G.EOF)
-        # Your code here!!! (Compute lookahead for child items)
+        # (Compute lookahead for child items)
         for preview in item.Preview():
             lookaheads.update(compute_local_first(firsts,preview))        
         
         assert not lookaheads.contains_epsilon
-        # Your code here!!! (Build and return child items)
+        # (Build and return child items)
         output = []
         for production in G.Productions:
             if production.Left == next_symbol:
@@ -154,7 +152,6 @@ class LR1Parser(ShiftReduceParser):
             changed = False
             
             new_items = ContainerSet()
-            # Your code here!!!
             for item in closure:
                 for new_item in self.expand(item,G):
                     new_items.add(new_item)            
@@ -166,7 +163,7 @@ class LR1Parser(ShiftReduceParser):
 
     def goto_lr1(self, items, symbol, G, just_kernel=False):
         """ Transiciones en el automata LR1 """
-        #assert just_kernel or firsts is not None, '`firsts` must be provided if `just_kernel=False`'
+        # assert just_kernel or firsts is not None, '`firsts` must be provided if `just_kernel=False`'
         items = frozenset(item.NextItem() for item in items if item.NextSymbol == symbol)
         return items if just_kernel else self.closure_lr1(items, G)
 
@@ -194,7 +191,7 @@ class LR1Parser(ShiftReduceParser):
             current_state = visited[current]
             
             for symbol in G.terminals + G.nonTerminals:
-                # Your code here!!! (Get/Build `next_state`)
+                # (Get/Build `next_state`)
                 next_items = frozenset(self.goto_lr1(current_state.state,symbol,G))
                 if not next_items:
                     continue
