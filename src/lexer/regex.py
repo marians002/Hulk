@@ -1,10 +1,12 @@
+import sys
+sys.path.append('C:/Users/aleja/Documents/GitHub/HULK/src')
 from automata import *
-from ..cmp.ast import *
-from ..cmp.pycompiler import Grammar
-from ..cmp.utils import Token
-from ..cmp.tools.parsing import LR1Parser
-from ..cmp.evaluation import evaluate_reverse_parse
-from ..cmp.grammar import *
+from cmp.ast import *
+from cmp.pycompiler import Grammar
+from cmp.utils import Token
+from cmp.tools.parsing import LR1Parser
+from cmp.evaluation import evaluate_reverse_parse
+from cmp.grammar import *
 
 
 class EpsilonNode(AtomicNode):
