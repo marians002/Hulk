@@ -168,8 +168,8 @@ class BoolNode(ExpNode):
 
 
 class IsNode(ExpNode):
-    def __init__(self, left_exp, type_name):
-        self.left_exp = left_exp
+    def __init__(self, exp, type_name):
+        self.exp = exp
         self.type_name = type_name
 
 

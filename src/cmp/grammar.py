@@ -138,7 +138,7 @@ condition %= disjunction, lambda h, s: s[1]
 condition %= condition + andt + disjunction, lambda h, s: AndNode(s[1], s[3])
 
 disjunction %= not_comp_exp, lambda h, s: s[1]
-disjunction %= condition + ort + not_comp_exp, lambda h, s: OrNode(s[1], s[3])
+disjunction %= disjunction + ort + not_comp_exp, lambda h, s: OrNode(s[1], s[3])
 
 not_comp_exp %= comparer, lambda h, s: s[1]
 not_comp_exp %= nott + comparer, lambda h, s: NotNode(s[2])
