@@ -1,12 +1,12 @@
 import sys
 
-sys.path.append('/home/marian/Documents/MATCOM/Compilación/Hulk Repo/Hulk/src/parser')
+sys.path.append('/home/carlosbreso/Data/Code/Python/HulkCompiler/Hulk/src')
 # para importar tienes que definir la ruta de donde estan los modulos
-from src.cmp.pycompiler import Grammar, Item
-from src.cmp.utils import ContainerSet
-from src.cmp.automata import State, multiline_formatter
-from src.cmp.firsts_follows import compute_local_first, compute_firsts
-from src.cmp.grammar import *
+from cmp.pycompiler import Grammar, Item
+from cmp.utils import ContainerSet
+from cmp.automata import State, multiline_formatter
+from cmp.firsts_follows import compute_local_first, compute_firsts
+from cmp.grammar import *
 
 
 class ShiftReduceParser:
