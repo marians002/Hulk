@@ -1,5 +1,7 @@
-from Hulk.src.cmp import ContainerSet
-from Hulk.src.cmp import DisjointSet
+import sys
+sys.path.append('C:/Users/aleja/Documents/GitHub/')
+from HULK.src.cmp.utils import ContainerSet
+from HULK.src.cmp.utils import DisjointSet
 
 
 class NFA:
