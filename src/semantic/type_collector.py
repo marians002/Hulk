@@ -1,6 +1,8 @@
-from ..cmp.ast_for_hulk import *
-from ..cmp.semantic import *
-from ..cmp import visitor
+import sys
+sys.path.append('/home/marian/Documents/MATCOM/Compilación/Hulk Repo/Hulk/')
+from src.cmp.ast_for_hulk import *
+from src.cmp.semantic import *
+from src.cmp import visitor
 
 
 class TypeCollector(object):

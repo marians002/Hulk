@@ -1,5 +1,7 @@
-from ..cmp import visitor
-from ..cmp.ast_for_hulk import *
+import sys
+sys.path.append('/home/marian/Documents/MATCOM/Compilación/Hulk Repo/Hulk/')
+from src.cmp import visitor
+from src.cmp.ast_for_hulk import *
 
 
 class FormatVisitor(object):

@@ -89,7 +89,7 @@ def expand(G, item, firsts, items):
     # (Build and return child items)
     # output = []
     new_item = None
-    for production in next_symbol.Productions:
+    for production in next_symbol.productions:
         new_item = Item(production, 0, lookaheads)
 
     if new_item not in items:
@@ -117,12 +117,12 @@ def closure_lr1(G, items, firsts):
     """ Clausura de un item, equivalente a la clausura de un estado """
 
     closure = ContainerSet(*items)
-    items_to_upd = ContainerSet()
+    new_items = ContainerSet()
 
     for item in items:
-        items_to_upd.set.update(expand(G, item, firsts, set()))
+        new_items.set.update(expand(G, item, firsts, set()))
 
-    closure.update(items_to_upd)
+    closure.update(new_items)
 
     return compress(closure)
 
@@ -131,10 +131,10 @@ def goto_lr1(G, items, symbol, firsts=None, just_kernel=False):
     """ Transiciones en el automata LR1 """
     assert just_kernel or firsts is not None, '`firsts` must be provided if `just_kernel=False`'
     items = frozenset(item.NextItem() for item in items if item.NextSymbol == symbol)
-    return items if just_kernel else closure_lr1(items, G)
+    return items if just_kernel else closure_lr1(G, items, firsts)
 
 
-def build_LR1_automaton(self, G):
+def build_LR1_automaton(G):
     """ Automata necesario para construir la tabla """
 
     assert len(G.startSymbol.productions) == 1, 'Grammar must be augmented'
@@ -152,22 +152,45 @@ def build_LR1_automaton(self, G):
     pending = [start]
     visited = {start: automaton}
 
+    # while pending:
+    #     current = pending.pop()
+    #     current_state = visited[current]
+
+    #     for symbol in G.terminals + G.nonTerminals:
+    #         # (Get/Build `next_state`)
+    #         closure = frozenset(goto_lr1(G, current, symbol, firsts))
+    #         if len(closure) > 0:
+    #             continue
+    #         try:
+    #             next_state = visited[closure]
+    #         except KeyError:
+    #             visited[closure] = State(closure, True)
+    #             pending.append(closure)
+    #             next_state = visited[closure]
+
+    #         current_state.add_transition(symbol.Name, next_state)
+
+
     while pending:
         current = pending.pop()
-        current_state = visited[current]
-
+        if current in visited:
+            current_state = visited[current]
+        else:
+            current_state = visited[current] = State(frozenset(current), True)
+        
         for symbol in G.terminals + G.nonTerminals:
             # (Get/Build `next_state`)
-            next_items = frozenset(goto_lr1(current_state.state, symbol, G))
-            if not next_items:
+            goto_set = frozenset(goto_lr1(G, current, symbol, firsts))
+            if not goto_set:
                 continue
-            try:
-                next_state = visited[next_items]
-            except KeyError:
-                visited[next_items] = State(next_items, True)
-                pending.append(next_items)
-                next_state = visited[next_items]
-
+                
+            if goto_set in visited:
+                next_state = visited[goto_set]
+            else:
+                pending.append(goto_set)
+                visited[goto_set] = next_state = State(goto_set, True)
+                   
+            
             current_state.add_transition(symbol.Name, next_state)
 
     automaton.set_formatter(multiline_formatter)
