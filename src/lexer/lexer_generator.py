@@ -48,6 +48,12 @@ class Lexer:
     def _tokenize(self, text):
         (row, column) = (1, 1)
         while text:
+            try:
+                while(text[0]==" "):
+                    text = text[1:]
+            except: 
+                print("texto finalizado")
+                return
             final_state, lex = self._walk(text)
 
             assert len(lex) != 0, 'Error'
