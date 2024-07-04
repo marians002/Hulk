@@ -154,25 +154,6 @@ def build_LR1_automaton(G):
     pending = [start]
     visited = {start: automaton}
 
-    """ while pending:
-       current = pending.pop()
-       current_state = visited[current]
-
-       for symbol in G.terminals + G.nonTerminals:
-           # (Get/Build `next_state`)
-           closure = frozenset(goto_lr1(G, current, symbol, firsts))
-           if len(closure) > 0:
-               continue
-           try:
-               next_state = visited[closure]
-           except KeyError:
-               visited[closure] = State(closure, True)
-               pending.append(closure)
-               next_state = visited[closure]
-
-           current_state.add_transition(symbol.Name, next_state) """
-
-
     while pending:
         current = pending.pop()
         current_state  = visited[current]
