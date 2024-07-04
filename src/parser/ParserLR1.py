@@ -69,7 +69,7 @@ class ShiftReduceParser:
             return output, operations
 
 
-def expand(G, item, firsts, items):
+def expand(G, item, firsts):
     """ Expande un no terminal, obteniendo sus producciones tales que
     el lookahead pertenezca al first de lo que habia en la produccion a
     partir de la que se expandio concatenado su lookahead """
@@ -79,27 +79,23 @@ def expand(G, item, firsts, items):
         return []
 
     lookaheads = ContainerSet()
-    # firsts = compute_firsts(G)
-    # firsts[G.EOF] = ContainerSet(G.EOF)
+    
     # (Compute lookahead for child items)
     for preview in item.Preview():
         lookaheads.update(compute_local_first(firsts, preview))
 
-    # assert not lookaheads.contains_epsilon
+    assert not lookaheads.contains_epsilon
     # (Build and return child items)
     # output = []
-    new_item = None
-    for production in next_symbol.productions:
-        new_item = Item(production, 0, lookaheads)
-
-    if new_item not in items:
-        items.add(new_item)
-        expand(G, new_item, firsts, items)
-    return items
+    output = []
+    for production in G.Productions:
+        if production.Left == next_symbol:
+            output.append(Item(production,0,lookaheads))
+    return output
 
 
 def compress(items):
-    """ Reduce items innecesarios en los estados en uno """
+    """ Combina items iguales que tienen center distinto"""
     centers = {}
 
     for item in items:
@@ -114,21 +110,28 @@ def compress(items):
 
 
 def closure_lr1(G, items, firsts):
-    """ Clausura de un item, equivalente a la clausura de un estado """
-
+    """ Clausura de un item, equivalente a la epsilon clausura de un estado """
     closure = ContainerSet(*items)
-    new_items = ContainerSet()
+    
+    changed = True
+    while changed:
+        changed = False
+        
+        new_items = ContainerSet()
+        # Your code here!!!
+        for item in closure:
+            for new_item in expand(G, item, firsts):
+                new_items.add(new_item)            
 
-    for item in items:
-        new_items.set.update(expand(G, item, firsts, set()))
-
-    closure.update(new_items)
-
+        
+        changed = closure.update(new_items)
+        
     return compress(closure)
 
 
 def goto_lr1(G, items, symbol, firsts=None, just_kernel=False):
     """ Transiciones en el automata LR1 """
+    
     assert just_kernel or firsts is not None, '`firsts` must be provided if `just_kernel=False`'
     items = frozenset(item.NextItem() for item in items if item.NextSymbol == symbol)
     return items if just_kernel else closure_lr1(G, items, firsts)
@@ -148,39 +151,35 @@ def build_LR1_automaton(G):
 
     closure = closure_lr1(G, start, firsts)
     automaton = State(frozenset(closure), True)
-
     pending = [start]
     visited = {start: automaton}
 
-    # while pending:
-    #     current = pending.pop()
-    #     current_state = visited[current]
+    """ while pending:
+       current = pending.pop()
+       current_state = visited[current]
 
-    #     for symbol in G.terminals + G.nonTerminals:
-    #         # (Get/Build `next_state`)
-    #         closure = frozenset(goto_lr1(G, current, symbol, firsts))
-    #         if len(closure) > 0:
-    #             continue
-    #         try:
-    #             next_state = visited[closure]
-    #         except KeyError:
-    #             visited[closure] = State(closure, True)
-    #             pending.append(closure)
-    #             next_state = visited[closure]
+       for symbol in G.terminals + G.nonTerminals:
+           # (Get/Build `next_state`)
+           closure = frozenset(goto_lr1(G, current, symbol, firsts))
+           if len(closure) > 0:
+               continue
+           try:
+               next_state = visited[closure]
+           except KeyError:
+               visited[closure] = State(closure, True)
+               pending.append(closure)
+               next_state = visited[closure]
 
-    #         current_state.add_transition(symbol.Name, next_state)
+           current_state.add_transition(symbol.Name, next_state) """
 
 
     while pending:
         current = pending.pop()
-        if current in visited:
-            current_state = visited[current]
-        else:
-            current_state = visited[current] = State(frozenset(current), True)
+        current_state  = visited[current]
         
         for symbol in G.terminals + G.nonTerminals:
             # (Get/Build `next_state`)
-            goto_set = frozenset(goto_lr1(G, current, symbol, firsts))
+            goto_set = frozenset(goto_lr1(G, current_state.state, symbol, firsts))
             if not goto_set:
                 continue
                 
@@ -190,7 +189,6 @@ def build_LR1_automaton(G):
                 pending.append(goto_set)
                 visited[goto_set] = next_state = State(goto_set, True)
                    
-            
             current_state.add_transition(symbol.Name, next_state)
 
     automaton.set_formatter(multiline_formatter)
@@ -234,3 +232,21 @@ class LR1Parser(ShiftReduceParser):
     def _register(table, key, value):
         assert key not in table or table[key] == value, 'Shift-Reduce or Reduce-Reduce conflict!!!'
         table[key] = value
+
+
+G = Grammar()
+S = G.NonTerminal('S', True)
+A,B,C = G.NonTerminals('A B C')
+a,b,c,d,f = G.Terminals('a b c d f')
+
+S %= a + A | B + C | f + B + f
+A %= a + A | G.Epsilon
+B %= b + B | G.Epsilon
+C %= c + C | d
+
+
+parser = LR1Parser(G)
+
+left_parse = parser([b, b, d, G.EOF])
+
+print(left_parse)
