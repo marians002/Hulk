@@ -43,13 +43,13 @@ class TypeCollector(object):
         # Range Type
         type_range = self.context.create_type('Range')
         type_range.set_parent(type_obj)
-        type_range.define_method('current', [], [], type_num)
-        type_range.define_method('next', [], [], type_bool)
         type_range.param_names = ['start', 'end']
         type_range.param_types = [type_num, type_num]
+        type_range.define_attribute('current', type_num)
         type_range.define_attribute('start', type_num)
         type_range.define_attribute('end', type_num)
-        type_range.define_attribute('current', type_num)
+        type_range.define_method('current', [], [], type_num)
+        type_range.define_method('next', [], [], type_bool)
 
         # Built-In Functions
         f_print = self.context.get_type('Function').define_method('print', ['value'], [type_obj], type_str)
@@ -63,6 +63,10 @@ class TypeCollector(object):
         f_range = self.context.get_type('Function').define_method('range', ['start', 'end'], [type_num, type_num],
                                                                   type_range)
 
+        protocol_iter = self.context.create_type('Iterable')
+        protocol_iter.define_method('current', [], [], type_obj)
+        protocol_iter.define_method('next', [], [], type_bool)
+        
         for declaration in node.decl_list:
             self.visit(declaration)
 

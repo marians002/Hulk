@@ -24,13 +24,11 @@ class TypeBuilder:
 
     @visitor.when(FunctionNode)
     def visit(self, node):
-        param_names = []
-        param_types = []
+        param_names, param_types = [], []
 
-        if node.params is not None and hasattr(node, 'params'):
+        if hasattr(node, 'params') and node.params:
             for param in node.params:
-                p_name = param.identifier
-                p_type = param.type_name
+                p_name, p_type = param.identifier, param.type_name
                 if p_name in param_names:
                     self.errors.append(f"Parameter '{p_name}' already defined in method '{node.identifier}'")
                     param_types[param_names.index(p_name)] = ErrorType()
@@ -42,15 +40,7 @@ class TypeBuilder:
                     param_type = ErrorType()
                 param_types.append(param_type)
                 param_names.append(p_name)
-        # try:
-        #     type = self.context.get_type(node.type_name)
-        # except SemanticError as ex:
-        #     self.errors.append(ex.text)
-        #     type = ErrorType()
-        # try:
-        #     self.current_type.define_method(node.identifier, param_names, param_types, type)
-        # except SemanticError as ex:
-        #     self.errors.append(ex.text)
+        
         return param_names, param_types
 
     @visitor.when(TypeNode)
@@ -73,9 +63,11 @@ class TypeBuilder:
                 parent = self.context.get_type(node.inherits)
                 curr = parent
 
-                while curr is not None:
+                while curr:
                     if curr.name == self.current_type.name:
                         self.errors.append(f"Type '{self.current_type.name}' cannot inherit from '{node.inherits}'")
+                        parent = ErrorType()
+                        break
                     curr = curr.inherits
 
             except SemanticError as ex:
@@ -106,14 +98,16 @@ class TypeBuilder:
             self.current_type = ErrorType()
             return
 
-        if node.extends is not None:
+        if node.extends:
             try:
                 parent = self.context.get_type(node.extends)
                 curr = parent
 
-                while curr is not None:
+                while curr:
                     if curr.name == self.current_type.name:
                         self.errors.append(f"Type '{self.current_type.name}' cannot inherit from '{node.inherits}'")
+                        parent = ErrorType()
+                        break
                     curr = curr.inherits
 
             except SemanticError as ex:

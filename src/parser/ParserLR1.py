@@ -1,6 +1,6 @@
 import sys
 
-sys.path.append('/home/carlosbreso/Data/Code/Python/HulkCompiler/Hulk/src')
+sys.path.append('/home/marian/Documents/MATCOM/Compilación/Hulk Repo/Hulk/src')
 # para importar tienes que definir la ruta de donde estan los modulos
 from cmp.pycompiler import Grammar, Item
 from cmp.utils import ContainerSet
@@ -79,7 +79,7 @@ def expand(G, item, firsts):
         return []
 
     lookaheads = ContainerSet()
-    
+
     # Compute lookahead for child items
     for preview in item.Preview():
         lookaheads.update(compute_local_first(firsts, preview))
@@ -89,7 +89,7 @@ def expand(G, item, firsts):
     output = []
     for production in G.Productions:
         if production.Left == next_symbol:
-            output.append(Item(production,0,lookaheads))
+            output.append(Item(production, 0, lookaheads))
     return output
 
 
@@ -111,25 +111,24 @@ def compress(items):
 def closure_lr1(G, items, firsts):
     """ Clausura de un item, equivalente a la epsilon clausura de un estado """
     closure = ContainerSet(*items)
-    
+
     changed = True
     while changed:
         changed = False
-        
+
         new_items = ContainerSet()
         for item in closure:
             for new_item in expand(G, item, firsts):
-                new_items.add(new_item)            
+                new_items.add(new_item)
 
-        
         changed = closure.update(new_items)
-        
+
     return compress(closure)
 
 
 def goto_lr1(G, items, symbol, firsts=None, just_kernel=False):
     """ Transiciones en el automata LR1 """
-    
+
     assert just_kernel or firsts is not None, '`firsts` must be provided if `just_kernel=False`'
     items = frozenset(item.NextItem() for item in items if item.NextSymbol == symbol)
     return items if just_kernel else closure_lr1(G, items, firsts)
@@ -154,20 +153,20 @@ def build_LR1_automaton(G):
 
     while pending:
         current = pending.pop()
-        current_state  = visited[current]
-        
+        current_state = visited[current]
+
         for symbol in G.terminals + G.nonTerminals:
             # Get/Build `next_state`
             goto_set = frozenset(goto_lr1(G, current_state.state, symbol, firsts))
             if not goto_set:
                 continue
-                
+
             if goto_set in visited:
                 next_state = visited[goto_set]
             else:
                 pending.append(goto_set)
                 visited[goto_set] = next_state = State(goto_set, True)
-                   
+
             current_state.add_transition(symbol.Name, next_state)
 
     automaton.set_formatter(multiline_formatter)

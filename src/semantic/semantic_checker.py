@@ -10,22 +10,27 @@ from src.parser.ParserLR1 import *
 from src.cmp.evaluation import evaluate_reverse_parse
 
 text = '''
-class A {
-    a : int ;
-    def suma ( a : int , b : int ) : int {
-        a + b ;
-    }
-    b : int ;
+type animal{
+    xa:Number=12;
+    xz:Number="Manolo \" manolin";
+    xa:Number=13;
+}
+type perro inherits animal{
+    xb:Number=12;
+    dogi:animal=12;
+    xc:miloco=12;
 }
 
-class B : A {
-    c : A ;
-    def f ( d : int , a : A ) : void {
-        let f : int = 8 ;
-        let c = new A ( ) . suma ( 5 , f ) ;
-        c ;
-    }
+type perro{
+    xd:Number=12;
 }
+
+
+type animal{
+    xe:Number=12;
+}
+
+print(43);
 '''
 fixed_tokens = {t.Name: Token(t.Name, t) for t in G.terminals if t not in {identifier, number}}
 
