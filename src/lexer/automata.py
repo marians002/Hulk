@@ -1,7 +1,12 @@
-import sys
-sys.path.append('C:/Users/aleja/Documents/GitHub/')
-from HULK.src.cmp.utils import ContainerSet
-from HULK.src.cmp.utils import DisjointSet
+
+# import sys
+# sys.path.append('C:/Users/aleja/Documents/GitHub/')
+# from HULK.src.cmp.utils import ContainerSet
+# from HULK.src.cmp.utils import DisjointSet
+
+from ..cmp import ContainerSet
+from ..cmp import DisjointSet
+
 
 
 class NFA:

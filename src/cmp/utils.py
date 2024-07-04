@@ -1,6 +1,10 @@
-import sys
-sys.path.append('C:/Users/aleja/Documents/GitHub/HULK/src/cmp')
-from pycompiler import Production, Sentence, Symbol, EOF, Epsilon
+
+# import sys
+# sys.path.append('C:/Users/aleja/Documents/GitHub/HULK/src/cmp')
+# from pycompiler import Production, Sentence, Symbol, EOF, Epsilon
+
+from cmp.pycompiler import Production, Sentence, Symbol, EOF, Epsilon
+
 
 
 class ContainerSet:
