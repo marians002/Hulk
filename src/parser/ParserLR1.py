@@ -80,13 +80,12 @@ def expand(G, item, firsts):
 
     lookaheads = ContainerSet()
     
-    # (Compute lookahead for child items)
+    # Compute lookahead for child items
     for preview in item.Preview():
         lookaheads.update(compute_local_first(firsts, preview))
 
     assert not lookaheads.contains_epsilon
-    # (Build and return child items)
-    # output = []
+    # Build and return child items
     output = []
     for production in G.Productions:
         if production.Left == next_symbol:
@@ -118,7 +117,6 @@ def closure_lr1(G, items, firsts):
         changed = False
         
         new_items = ContainerSet()
-        # Your code here!!!
         for item in closure:
             for new_item in expand(G, item, firsts):
                 new_items.add(new_item)            
@@ -159,7 +157,7 @@ def build_LR1_automaton(G):
         current_state  = visited[current]
         
         for symbol in G.terminals + G.nonTerminals:
-            # (Get/Build `next_state`)
+            # Get/Build `next_state`
             goto_set = frozenset(goto_lr1(G, current_state.state, symbol, firsts))
             if not goto_set:
                 continue
@@ -190,7 +188,7 @@ class LR1Parser(ShiftReduceParser):
         for node in automaton:
             idx = node.idx
             for item in node.state:
-                # - Fill `self.Action` and `self.Goto` according to `item`)
+                # Fill `self.Action` and `self.Goto` according to `item`
                 X = item.production.Left
 
                 symbol = item.NextSymbol
