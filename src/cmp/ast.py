@@ -1,3 +1,5 @@
+import sys
+sys.path.append('C:/Users/aleja/Documents/GitHub/HULK/src/cmp')
 import visitor as visitor
 
 

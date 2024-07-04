@@ -4,10 +4,9 @@ from automata import *
 from cmp.ast import *
 from cmp.pycompiler import Grammar
 from cmp.utils import Token
-from cmp.tools.parsing import LR1Parser
+# from cmp.tools.parsing import LR1Parser
 from cmp.evaluation import evaluate_reverse_parse
-# from cmp.grammar import *
-# from parser.ParserLR1 import*
+from parser.ParserLR1 import LR1Parser
 
 
 class EpsilonNode(AtomicNode):
