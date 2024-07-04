@@ -213,21 +213,3 @@ class LR1Parser(ShiftReduceParser):
     def _register(table, key, value):
         assert key not in table or table[key] == value, 'Shift-Reduce or Reduce-Reduce conflict!!!'
         table[key] = value
-
-
-G = Grammar()
-S = G.NonTerminal('S', True)
-A,B,C = G.NonTerminals('A B C')
-a,b,c,d,f = G.Terminals('a b c d f')
-
-S %= a + A | B + C | f + B + f
-A %= a + A | G.Epsilon
-B %= b + B | G.Epsilon
-C %= c + C | d
-
-
-parser = LR1Parser(G)
-
-left_parse = parser([b, b, d, G.EOF])
-
-print(left_parse)
