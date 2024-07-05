@@ -27,8 +27,10 @@ class TypeChecker:
     @visitor.when(ProgramNode)
     def visit(self, node: ProgramNode, scope=None):
         scope = Scope()
+        node.scope = scope
         for declaration in node.decl_list:
             self.visit(declaration, scope.create_child())
+        self.visit(node.global_exp, scope.create_child())
         return scope
 
     @visitor.when(FunctionNode)
@@ -37,7 +39,11 @@ class TypeChecker:
         f_scope = scope.create_child()
 
         for param in node.params:
-            f_scope.define_variable(param.identifier, self.context.get_type(param.type_name))
+            try:
+                f_scope.define_variable(param.identifier, self.context.get_type(param.type_name))
+            except SemanticError as ex:
+                if param.type_name:
+                    self.errors.append(ex.text)
             if param.identifier == "self":
                 self.errors.append(SELF_IS_READONLY)
 
@@ -77,7 +83,8 @@ class TypeChecker:
             return
 
         scope.define_variable(node.identifier, type)
-        self.visit(node.value, scope)
+        # print("LINEA ANTES DEL VISIT")
+        self.visit(node.value, scope.create_child())
 
     @visitor.when(BlockNode)
     def visit(self, node: BlockNode, scope):
@@ -185,8 +192,7 @@ class TypeChecker:
     @visitor.when(NegativeNode)
     def visit(self, node, scope):
         node.scope = scope
-        self.visit(node.left_exp, scope.create_child())
-        self.visit(node.right_exp, scope.create_child())
+        self.visit(node.exp, scope.create_child())
 
     @visitor.when(NumberNode)
     def visit(self, node, scope):
@@ -228,7 +234,10 @@ class TypeChecker:
     @visitor.when(PropCallNode)
     def visit(self, node, scope):
         node.scope = scope
+        # print("visit del property call node")
         self.visit(node.exp, scope.create_child())
+        self.visit(node.function, scope.create_child())
+
 
     @visitor.when(IfNode)
     def visit(self, node, scope):
@@ -240,6 +249,7 @@ class TypeChecker:
 
     @visitor.when(WhileNode)
     def visit(self, node, scope):
+        print("WHILE NODE")
         w_scope = scope.create_child()
         node.scope = w_scope
         self.visit(node.condition, w_scope)

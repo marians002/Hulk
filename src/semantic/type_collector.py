@@ -69,6 +69,7 @@ class TypeCollector(object):
         
         for declaration in node.decl_list:
             self.visit(declaration)
+        self.visit(node.global_exp)
 
         return self.context, self.errors
 

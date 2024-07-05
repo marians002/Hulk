@@ -33,7 +33,8 @@ class FormatVisitor(object):
         params = '\t' * (tabs + 1) + 'Params:\n' + '\n'.join(self.visit(param, tabs + 1) for param in node.params)
         attr_list = '\t' * (tabs + 1) + 'Attributes:\n' + '\n'.join(
             self.visit(attr, tabs + 1) for attr in node.attr_list)
-        return f'{ans}\n{params}\n{attr_list}'
+        args = '\t' * (tabs + 1) + 'Args:\n' + '\n'.join(self.visit(arg, tabs + 1) for arg in node.args)
+        return f'{ans}\n{params}\n{args}\n{attr_list}'
 
     @visitor.when(ProtocolNode)
     def visit(self, node, tabs=0):
