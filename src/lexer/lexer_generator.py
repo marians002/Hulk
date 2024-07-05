@@ -1,6 +1,8 @@
-from ..cmp.utils import Token
-from ..cmp.automata import State
-from ..lexer.regex import Regex
+import sys
+sys.path.append('C:/Users/aleja/Documents/GitHub/HULK/src')
+from cmp.utils import Token
+from cmp.automata import State
+from lexer.regex import Regex
 
 
 class Lexer:
@@ -46,6 +48,7 @@ class Lexer:
     def _tokenize(self, text):
         (row, column) = (1, 1)
         while text:
+           
             final_state, lex = self._walk(text)
 
             assert len(lex) != 0, 'Error'
