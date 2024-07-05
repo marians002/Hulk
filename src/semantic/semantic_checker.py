@@ -35,14 +35,7 @@ print(43);
 fixed_tokens = {t.Name: Token(t.Name, t) for t in G.terminals if t not in {identifier, number}}
 
 
-@tokenizer(G, fixed_tokens)
-def tokenize_text(token):
-    lex = token.lex
-    try:
-        float(lex)
-        return token.transform_to(number)
-    except ValueError:
-        return token.transform_to(identifier)
+
 
 
 if __name__ == '__main__':

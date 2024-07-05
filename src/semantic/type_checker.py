@@ -95,24 +95,24 @@ class TypeChecker:
             self.visit(statement, b_scope.create_child())
 
     @visitor.when(AndNode)
-    def visit(self, node, scope):
+    def visit(self, node: AndNode, scope):
         node.scope = scope
         self.visit(node.left_exp, scope.create_child())
         self.visit(node.right_exp, scope.create_child())
 
     @visitor.when(OrNode)
-    def visit(self, node, scope):
+    def visit(self, node: OrNode, scope):
         node.scope = scope
         self.visit(node.left_exp, scope.create_child())
         self.visit(node.right_exp, scope.create_child())
 
     @visitor.when(NotNode)
-    def visit(self, node, scope):
+    def visit(self, node: NotNode, scope):
         node.scope = scope
         self.visit(node.exp, scope.create_child())
 
     @visitor.when(ConcatNode)
-    def visit(self, node, scope):
+    def visit(self, node: ConcatNode, scope):
         node.scope = scope
         self.visit(node.left_exp, scope.create_child())
         self.visit(node.right_exp, scope.create_child())
@@ -221,23 +221,22 @@ class TypeChecker:
         node.scope = scope
 
     @visitor.when(InvoqueFuncNode)
-    def visit(self, node, scope):
+    def visit(self, node: InvoqueFuncNode, scope):
         node.scope = scope
         for arg in node.args:
             self.visit(arg, scope.create_child())
 
     @visitor.when(AttrCallNode)
-    def visit(self, node, scope):
+    def visit(self, node: AttrCallNode, scope):
         node.scope = scope
         self.visit(node.exp, scope.create_child())
 
     @visitor.when(PropCallNode)
-    def visit(self, node, scope):
+    def visit(self, node: PropCallNode, scope):
         node.scope = scope
         # print("visit del property call node")
         self.visit(node.exp, scope.create_child())
         self.visit(node.function, scope.create_child())
-
 
     @visitor.when(IfNode)
     def visit(self, node, scope):
@@ -248,23 +247,23 @@ class TypeChecker:
             self.visit(instructions, intern_scope)
 
     @visitor.when(WhileNode)
-    def visit(self, node, scope):
+    def visit(self, node: WhileNode, scope):
         print("WHILE NODE")
         w_scope = scope.create_child()
         node.scope = w_scope
-        self.visit(node.condition, w_scope)
-        self.visit(node.body, w_scope)
+        self.visit(node.condition, w_scope.create_child())
+        self.visit(node.body, w_scope.create_child())
 
     @visitor.when(ForNode)
-    def visit(self, node, scope):
+    def visit(self, node: ForNode, scope):
         f_scope = scope.create_child()
         node.scope = f_scope
         f_scope.define_variable(node.var, None)
         self.visit(node.exp, f_scope)
-        self.visit(node.body, f_scope)
+        self.visit(node.body, f_scope.create_child())
 
     @visitor.when(LetNode)
-    def visit(self, node, scope):
+    def visit(self, node: LetNode, scope):
         l_scope = scope.create_child()
         node.scope = l_scope
         for var_decl in node.var_decl:
@@ -272,25 +271,25 @@ class TypeChecker:
         self.visit(node.body, l_scope)
 
     @visitor.when(NewNode)
-    def visit(self, node, scope):
+    def visit(self, node: NewNode, scope):
         node.scope = scope
         for arg in node.args:
             self.visit(arg, scope.create_child())
 
     @visitor.when(IndexNode)
-    def visit(self, node, scope):
+    def visit(self, node: IndexNode, scope):
         node.scope = scope
         self.visit(node.exp, scope.create_child())
         self.visit(node.index, scope.create_child())
 
     @visitor.when(VectorNode)
-    def visit(self, node, scope):
+    def visit(self, node: VectorNode, scope):
         node.scope = scope
         for exp in node.exp_list:
             self.visit(exp, scope.create_child())
 
     @visitor.when(VectorComprNode)
-    def visit(self, node, scope):
+    def visit(self, node: VectorComprNode, scope):
         node.scope = scope
         vc_scope = scope.create_child()
         vc_scope.define_variable(node.var, None)
