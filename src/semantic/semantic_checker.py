@@ -2,7 +2,7 @@ import sys
 sys.path.append('/home/marian/Documents/MATCOM/Compilación/Hulk Repo/Hulk/')
 from type_collector import *
 from type_builder import *
-from type_checker import *
+from scopes_filler import *
 from format_visitor import *
 from src.lexer.lexer_generator import *
 from src.cmp.grammar import *
@@ -302,20 +302,20 @@ def pprint_tokens(lexer):
 
 def run_pipeline(G, text, tokens):
     print('=================== TEXT ======================')
-    print(text)
+    # print(text)
     print('================== TOKENS =====================')
-    lexer = Lexer(tokens, "$")
-    pprint_tokens(lexer)
+    hulk_lexer = Lexer(tokens, "$")
+    tokens_test = hulk_lexer(text)
+    # pprint_tokens(lexer)
     print('=================== PARSE =====================')
-    parser = LR1Parser(G)
+    hulk_parser = LR1Parser(G)
     print("FINISHED PARSING")
-    # parse, operations = parser([t.token_type for t in tokens], get_shift_reduce=True)
-    # print('\n'.join(repr(x) for x in parse))
-    # print('==================== AST ======================')
-    # ast = evaluate_reverse_parse(parse, operations, tokens)
-    # formatter = FormatVisitor()
-    # tree = formatter.visit(ast)
-    # print(tree)
+    # tokens_r = tokens_test[0][1]
+    parse, operations = hulk_parser(tokens_test, get_shift_reduce=True)
+    
+    print('==================== AST ======================')
+    ast = evaluate_reverse_parse(parse, operations, tokens_test)
+    
     return True
 
 
@@ -324,23 +324,23 @@ if __name__ == '__main__': ast = run_pipeline(G, text, tokens)
 # deprecated_pipeline = run_pipeline
 
 
-def run_pipeline(G, text):
-    ast = deprecated_pipeline(G, text)
-    print('============== COLLECTING TYPES ===============')
-    errors = []
-    collector = TypeCollector(errors)
-    collector.visit(ast)
-    context = collector.context
-    print('Errors:', errors)
-    print('Context:')
-    print(context)
-    print('=============== BUILDING TYPES ================')
-    builder = TypeBuilder(context, errors)
-    builder.visit(ast)
-    print('Errors: [')
-    for error in errors:
-        print('\t', error)
-    print(']')
-    print('Context:')
-    print(context)
-    return ast, errors, context
+# def run_pipeline(G, text):
+#     ast = deprecated_pipeline(G, text)
+#     print('============== COLLECTING TYPES ===============')
+#     errors = []
+#     collector = TypeCollector(errors)
+#     collector.visit(ast)
+#     context = collector.context
+#     print('Errors:', errors)
+#     print('Context:')
+#     print(context)
+#     print('=============== BUILDING TYPES ================')
+#     builder = TypeBuilder(context, errors)
+#     builder.visit(ast)
+#     print('Errors: [')
+#     for error in errors:
+#         print('\t', error)
+#     print(']')
+#     print('Context:')
+#     print(context)
+#     return ast, errors, context
