@@ -1,7 +1,8 @@
 import sys
-sys.path.append('/home/marian/Documents/MATCOM/Compilación/Hulk Repo/Hulk/src/cmp')
-from .pycompiler import EOF
-from .tools.parsing import ShiftReduceParser
+sys.path.append('/home/marian/Documents/MATCOM/Compilación/Hulk Repo/Hulk/src/')
+from cmp.pycompiler import EOF
+from parser.ParserLR1 import *
+# from .tools.parsing import ShiftReduceParser
 
 def evaluate_reverse_parse(right_parse, operations, tokens):
     if not right_parse or not operations or not tokens:

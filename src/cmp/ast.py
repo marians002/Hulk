@@ -1,5 +1,5 @@
 import sys
-sys.path.append('C:/Users/aleja/Documents/GitHub/HULK/src/cmp')
+sys.path.append('/home/marian/Documents/MATCOM/Compilación/Hulk Repo/Hulk/src/cmp')
 import visitor as visitor
 
 

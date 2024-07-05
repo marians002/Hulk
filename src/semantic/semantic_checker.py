@@ -4,83 +4,324 @@ from type_collector import *
 from type_builder import *
 from type_checker import *
 from format_visitor import *
+from src.lexer.lexer_generator import *
 from src.cmp.grammar import *
 from src.cmp.utils import Token, tokenizer
 from src.parser.ParserLR1 import *
 from src.cmp.evaluation import evaluate_reverse_parse
 
-text = '''
-type animal{
-    xa:Number=12;
-    xz:Number="Manolo \" manolin";
-    xa:Number=13;
+from src.lexer.lexer_generator import Lexer
+tokens = [
+    ("obra", '\{'),
+    ("cbra", '\}'),
+    ("opar", '\('),
+    ("cpar", '\)'),
+    ("ocor", '\['),
+    ("ccor", '\]'),
+    ("d_bar", '\|\|'),
+    
+    ("dot", '\.'),
+    ("semi", ','),
+    ("colon", ':'),
+    ("semicolon", ';'),
+    ("arrow", '=>'),
+    
+    ("or_", '\|'),
+    ("and_", '&'),
+    ("not_", '!'),
+    
+    ("d_as", ':='),
+    ("s_as", '='),
+    ("new_", 'new'),
+    
+    ("eq", '=='),
+    ("neq", '!='),
+    ("leq", '<='),
+    ("geq", '>='),
+    ("lt", '<'),
+    ("gt", '>'),
+    
+    ("is_", 'is'),
+    ("as_", 'as'),
+    
+    ("arr", '@'),
+    ("d_arr", '@@'),
+    
+    ("plus", '\+'),
+    ("minus", '\-'),
+    ("star", '\*'),
+    ("div", '/'),
+    ("mod", '%'),
+    ("pow_", '\^'),
+    ("pow__", '\*\*'),
+    
+    ("bool_", 'true|false'),
+    ("str_", '"([\x00-!#-\x7f]|\\\\")*"'),
+    ("number_", '(0|[1-9][0-9]*)(.[0-9]+)?'),
+    
+    
+    ("let_", 'let'),
+    ("in_", 'in'),
+    
+    ("if_", 'if'),
+    ("else_", 'else'),
+    ("elif_", 'elif'),
+    
+    ("while_", 'while'),
+    ("for_", 'fo'),
+    
+    ("inherits", 'inherits'),
+    ("function", 'function'),
+    ("protocol", 'protocol'),
+    ("extends", 'extends'),
+    ("type_", 'type'),
+    ("base_", 'base'),
+    ("endofline_",'\n'),
+    ("id_", '[_a-zA-Z][_a-zA-Z0-9]*'),
+    
+]
+tokens.append(('comment','//[\x00-\x09\x0b-\x7f]*\n'))
+tokens.append(('space', '  *'))
+
+# lexer = Lexer(tokens,"$")
+
+text = '''function tan(x: Number): Number => sin(x) / cos(x);
+function cot(x) => 1 / tan(x);
+function operate(x, y) {
+    print(x + y);
+    print(x - y);
+    print(x * y);
+    print(x / y);
 }
-type perro inherits animal{
-    xb:Number=12;
-    dogi:animal=12;
-    xc:miloco=12;
+function fib(n) => if (n == 0 | n == 1) 1 else fib(n-1) + fib(n-2);
+function fact(x) => let f = 1 in for (i in range(1, x+1)) f := f * i;
+function gcd(a, b) => while (a > 0)
+        let m = a % b in {
+            b := a;
+            a := m;
+        };
+protocol Hashable {
+    hash(): Number;
+}
+protocol Equatable extends Hashable {
+    equals(other: Object): Boolean;
+}
+protocol Iterable {
+    next() : Boolean;
+    current() : Object;
+}
+type Range(min:Number, max:Number) {
+    min = min;
+    max = max;
+    current = min - 1;
+
+    next(): Boolean => (self.current := self.current + 1) < self.max;
+    current(): Number => self.current;
+}
+type Point(x,y) {
+    x = x;
+    y = y;
+
+    getX() => self.x;
+    getY() => self.y;
+
+    setX(x) => self.x := x;
+    setY(y) => self.y := y;
 }
 
-type perro{
-    xd:Number=12;
+/////////////////  mal mal mal mal mal mal mal mal mal mal mal mal mal mal mal mal mal mal mal mal mal mal mal mal mal mal mal mal mal mal mal malmal mal mal mal mal mal mal mal mal mal mal mal mal mal mal mal
+type PolarPoint(phi, rho) inherits Point(rho * sin(phi), rho * cos(phi)) {
+    rho() => sqrt(self.getX() ^ 2 + self.getY() ^ 2); 
 }
 
 
-type animal{
-    xe:Number=12;
+type Knight inherits Person {
+    name() => "Sir" @@ base();
+}
+type Person(firstname, lastname) {
+    firstname = firstname;
+    lastname = lastname;
+
+    name() => self.firstname @@ self.lastname;
+    hash() : Number {
+        5;
+    }
+}
+type Superman {
+}
+type Bird {
+}
+type Plane {
+}
+type A {
+    hello() => print("A");
 }
 
-print(43);
-'''
-fixed_tokens = {t.Name: Token(t.Name, t) for t in G.terminals if t not in {identifier, number}}
+type B inherits A {
+    hello() => print("B");
+}
+
+type C inherits A {
+    hello() => print("C");
+}
+
+{
+    42;
+    print(42);
+    print((((1 + 2) ^ 3) * 4) / 5);
+    print("Hello World");
+    print("The message is \"Hello World\"");
+    print("The meaning of life is " @ 42);
+    print(sin(2 * PI) ^ 2 + cos(3 * PI / log(4, 64)));
+    {
+        print(42);
+        print(sin(PI/2));
+        print("Hello World");
+    };
+
+    
+/////////////////  mal mal mal mal mal mal mal mal mal mal mal mal mal mal mal mal mal mal mal mal mal mal mal mal mal mal mal mal mal mal mal malmal mal mal mal mal mal mal mal mal mal mal mal mal mal mal mal
+    print(tan(PI) * 2 + cot(PI) * 2);
+
+    let msg = "Hello World" in print(msg);
+    let number = 42, text = "The meaning of life is" in
+        print(text @ number);
+    let number = 42 in
+        let text = "The meaning of life is" in
+            print(text @ number);
+    let number = 42 in (
+        let text = "The meaning of life is" in (
+                print(text @ number)
+            )
+        );
+    let a = 6, b = a * 7 in print(b);
+    let a = 6 in
+        let b = a * 7 in
+            print(b);
+    let a = 5, b = 10, c = 20 in {
+        print(a+b);
+        print(b*c);
+        print(c/a);
+    };
+    let a = (let b = 6 in b * 7) in print(a);
+    print(let b = 6 in b * 7);
+    let a = 20 in {
+        let a = 42 in print(a);
+        print(a);
+    };
+    let a = 7, a = 7 * 6 in print(a);
+    let a = 7 in
+        let a = 7 * 6 in
+            print(a);
+    let a = 0 in {
+        print(a);
+        a := 1;
+        print(a);
+    };
+    let a = 0 in
+        let b = a := 1 in {
+            print(a);
+            print(b);
+        };
+    let a = 42 in if (a % 2 == 0) print("Even") else print("odd");
+    let a = 42 in print(if (a % 2 == 0) "even" else "odd");
+    let a = 42 in
+        if (a % 2 == 0) {
+            print(a);
+            print("Even");
+        }
+        else print("Odd");
+    let a = 42, mod = a % 3 in 
+        print(
+            if (mod == 0) "Magic"
+            elif (mod % 3 == 1) "Woke"
+            else "Dumb"
+        );
+    let a = 10 in while (a >= 0) {
+        print(a);
+        a := a - 1;
+    };
+    
+    for (x in range(0, 10)) print(x);
+    let iterable = range(0, 10) in
+        while (iterable.next())
+            let x = iterable.current() in
+                print(x);
+
+    let pt = new Point() in 
+        print("x: " @ pt.getX() @ "; y: " @ pt.getY());
+    let pt = new Point(3,4) in
+        print("x: " @ pt.getX() @ "; y: " @ pt.getY());
+    let pt = new PolarPoint(3,4) in
+        print("rho: " @ pt.rho());
+
+    let p = new Knight("Phil", "Collins") in
+        print(p.name());
+    let p: Person = new Knight("Phil", "Collins") in print(p.name());
+    let x: Number = 42 in print(x);
+
+    
+    let x = new Superman() in
+        print(
+            if (x is Bird) "It's bird!"
+            elif (x is Plane) "It's a plane!"
+            else "No, it's Superman!"
+        );
+
+    let x = 42 in print(x);
+    let total = { print("Total"); 5; } + 6 in print(total);
+
+    
+
+    let x : A = if (rand() < 0.5) new B() else new C() in
+        if (x is B)
+            let y : B = x as B in {
+                y.hello();
+            }
+        else {
+            print("x cannot be downcasted to B");
+        };
+
+    let numbers = [1,2,3,4,5,6,7,8,9] in
+        for (x in numbers)
+            print(x);
+    let numbers = [1,2,3,4,5,6,7,8,9] in print(numbers[7]);
+
+    
+    let squares = [x^2 || x in range(1,10)] in print(x);
+
+    let squares = [x^2 || x in range(1,10)] in for (x in squares) print(x);
+    let x : Hashable = new Person() in print(x.hash());
+    let x : Hashable = new Point(0,0) in print(x.hash());
+}'''
+
+def pprint_tokens(lexer):
+    for token in lexer._tokenize(text):
+        print(token)
 
 
-
-
-
-if __name__ == '__main__':
-    tokens = tokenize_text(text)
-
-
-def pprint_tokens(tokens):
-    indent = 0
-    pending = []
-    for token in tokens:
-        pending.append(token)
-        if token.token_type in {ocur, ccur, semi}:
-            if token.token_type == ccur:
-                indent -= 1
-            print('    ' * indent + ' '.join(str(t.token_type) for t in pending))
-            pending.clear()
-            if token.token_type == ocur:
-                indent += 1
-    print(' '.join([str(t.token_type) for t in pending]))
-
-
-if __name__ == '__main__':  pprint_tokens(tokens)
-
-
-def run_pipeline(G, text):
+def run_pipeline(G, text, tokens):
     print('=================== TEXT ======================')
     print(text)
     print('================== TOKENS =====================')
-    tokens = tokenize_text(text)
-    pprint_tokens(tokens)
+    lexer = Lexer(tokens, "$")
+    pprint_tokens(lexer)
     print('=================== PARSE =====================')
     parser = LR1Parser(G)
-    parse, operations = parser([t.token_type for t in tokens], get_shift_reduce=True)
-    print('\n'.join(repr(x) for x in parse))
-    print('==================== AST ======================')
-    ast = evaluate_reverse_parse(parse, operations, tokens)
-    formatter = FormatVisitor()
-    tree = formatter.visit(ast)
-    print(tree)
-    return ast
+    print("FINISHED PARSING")
+    # parse, operations = parser([t.token_type for t in tokens], get_shift_reduce=True)
+    # print('\n'.join(repr(x) for x in parse))
+    # print('==================== AST ======================')
+    # ast = evaluate_reverse_parse(parse, operations, tokens)
+    # formatter = FormatVisitor()
+    # tree = formatter.visit(ast)
+    # print(tree)
+    return True
 
 
-if __name__ == '__main__': ast = run_pipeline(G, text)
+if __name__ == '__main__': ast = run_pipeline(G, text, tokens)
 
-deprecated_pipeline = run_pipeline
+# deprecated_pipeline = run_pipeline
 
 
 def run_pipeline(G, text):

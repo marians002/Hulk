@@ -70,19 +70,20 @@ tokens = [
 ]
 tokens.append(('comment','//[\x00-\x09\x0b-\x7f]*\n'))
 tokens.append(('space', '  *'))
-text = """type person() {
-                            name = "John";
-                            age = 25;
+# text = """type person() {
+#                             name = "John";
+#                             age = 25;
                             
-                           printName(){
-                                print(name);
-                            }
-                        }
+#                            printName(){
+#                                 print(name);
+#                             }
+#                         }
                         
-                        let x = new Person() in if (x.name == "Jane") print("Jane") else print("John");
-               """
+#                         let x = new Person() in if (x.name == "Jane") print("Jane") else print("John");
+#                """
 
 lexer = Lexer(tokens,"$")
+
 text = '''function tan(x: Number): Number => sin(x) / cos(x);
 function cot(x) => 1 / tan(x);
 function operate(x, y) {
@@ -292,6 +293,6 @@ type C inherits A {
     let x : Hashable = new Person() in print(x.hash());
     let x : Hashable = new Point(0,0) in print(x.hash());
 }'''
+
 for token in lexer._tokenize(text):
     print(token)
-# print([token for token in lexer._tokenize(text)])

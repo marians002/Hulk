@@ -1,8 +1,8 @@
 import sys
-sys.path.append('C:/Users/aleja/Documents/GitHub/HULK/src')
-from cmp.utils import Token
-from cmp.automata import State
-from lexer.regex import Regex
+sys.path.append('/home/marian/Documents/MATCOM/Compilación/Hulk Repo/Hulk/')
+from src.cmp.utils import Token
+from src.cmp.automata import State
+from src.lexer.regex import Regex
 
 
 class Lexer:

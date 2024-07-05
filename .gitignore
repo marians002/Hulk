@@ -1,0 +1,5 @@
+src/lexer/__pycache__/
+src/parser/__pycache__/
+src/semantic/__pycache__/
+src/cmp/__pycache__/
+

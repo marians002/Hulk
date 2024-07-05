@@ -1,6 +1,5 @@
-
-# import sys
-# sys.path.append('C:/Users/aleja/Documents/GitHub/HULK/src/cmp')
+import sys
+sys.path.append('/home/marian/Documents/MATCOM/Compilación/Hulk Repo/Hulk/src/')
 # from pycompiler import Production, Sentence, Symbol, EOF, Epsilon
 
 from cmp.pycompiler import Production, Sentence, Symbol, EOF, Epsilon
