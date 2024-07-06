@@ -37,8 +37,8 @@ class ShiftReduceParser:
                 print(stack, '<---||--->', w[cursor:])
 
             # (Detect error)
-            if (state, lookahead) not in action:
-                raise SyntaxError('Error de sintaxis, no se esperaba un token' + lookahead.lex + ' en l: ' + str(lookahead.pos[0]) + ' pos: ' + str(lookahead.pos[1]))
+            if (state, lookahead) not in self.action:
+                raise SyntaxError('Error de sintaxis, no se esperaba un token ' + lookahead.lex + ' en l: ' + str(lookahead.pos[0]) + ' pos: ' + str(lookahead.pos[1]))
             
             action, tag = self.action[state, lookahead]
             # (Shift case)
