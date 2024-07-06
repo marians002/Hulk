@@ -38,7 +38,7 @@ class ShiftReduceParser:
 
             # (Detect error)
             if (state, lookahead) not in action:
-                raise SyntaxError('Error de sintaxis, no se esperaba un token' + lookahead.lex + ' en pos: ' + str(lookahead.pos[0]) + ' l: ' + str(lookahead.pos[1]))
+                raise SyntaxError('Error de sintaxis, no se esperaba un token' + lookahead.lex + ' en l: ' + str(lookahead.pos[0]) + ' pos: ' + str(lookahead.pos[1]))
             
             action, tag = self.action[state, lookahead]
             # (Shift case)
@@ -64,7 +64,7 @@ class ShiftReduceParser:
                     break
                 # (Invalid case)
                 case _:
-                    raise SyntaxError('Error de sintaxsis, no se esperaba el token ' + lookahead.lex + ' en pos: ' + str(lookahead.pos[0]) + ' l: ' + str(lookahead.pos[1]))
+                    raise SyntaxError('Error de sintaxsis, no se esperaba el token ' + lookahead.lex + ' en l: ' + str(lookahead.pos[0]) + ' pos: ' + str(lookahead.pos[1]))
         if not get_shift_reduce:
             return output
         else:
