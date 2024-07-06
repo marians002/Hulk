@@ -32,13 +32,14 @@ class ShiftReduceParser:
 
         while True:
             state = stack[-1]
-            lookahead = w[cursor]
+            next_token = w[cursor]
+            lookahead = next_token.token_type
             if self.verbose:
                 print(stack, '<---||--->', w[cursor:])
-
+            
             # (Detect error)
             if (state, lookahead) not in self.action:
-                raise SyntaxError('Error de sintaxis, no se esperaba un token' + lookahead.lex + ' en l: ' + str(lookahead.pos[0]) + ' pos: ' + str(lookahead.pos[1]))
+                raise SyntaxError('Error de sintaxis, no se esperaba un token ' + next_token.lex + ' en l: ' + str(next_token.pos[0]) + ' pos: ' + str(next_token.pos[1]))
             
             action, tag = self.action[state, lookahead]
             # (Shift case)
@@ -64,7 +65,7 @@ class ShiftReduceParser:
                     break
                 # (Invalid case)
                 case _:
-                    raise SyntaxError('Error de sintaxsis, no se esperaba el token ' + lookahead.lex + ' en l: ' + str(lookahead.pos[0]) + ' pos: ' + str(lookahead.pos[1]))
+                    raise SyntaxError('Error de sintaxsis, no se esperaba el token ' + next_token.lex + ' en l: ' + str(next_token.pos[0]) + ' pos: ' + str(next_token.pos[1]))
         if not get_shift_reduce:
             return output
         else:

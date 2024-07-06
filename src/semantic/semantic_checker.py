@@ -6,29 +6,14 @@ from type_checker import *
 from format_visitor import *
 from cmp.grammar import *
 from cmp.utils import Token, tokenizer
-from parser.ParserLR1 import *
+from parser.ParserLR1 import LR1Parser
 from cmp.evaluation import evaluate_reverse_parse
 from lexer.lexer_generator import Lexer
-from lexer.tester import tokens as HulkTokens
+from lexer.hulk_tokens import HULK_TOKENS
+from cmp.tools.parsing import LR1Parser as JParser
 
-text = '''
-class A {
-    a : int ;
-    def suma ( a : int , b : int ) : int {
-        a + b ;
-    }
-    b : int ;
-}
+text = '42;'
 
-class B : A {
-    c : A ;
-    def f ( d : int , a : A ) : void {
-        let f : int = 8 ;
-        let c = new A ( ) . suma ( 5 , f ) ;
-        c ;
-    }
-}
-'''
 """ fixed_tokens = {t.Name: Token(t.Name, t) for t in G.terminals if t not in {identifier, number}}
 
 
@@ -68,13 +53,15 @@ def run_pipeline(G, text):
     print('=================== TEXT ======================')
     print(text)
     print('================== TOKENS =====================')
-    HulkLexer = Lexer(HulkTokens, G.EOF)
+    HulkLexer = Lexer(HULK_TOKENS, G.EOF)
     tokens = HulkLexer(text)
     for t in tokens:
-        print(tokens)
+        print(t)
+    #ttypes = [t.token_type for t in tokens]
     print('=================== PARSE =====================')
     HulkParser = LR1Parser(G)
-    parse, operations = HulkParser([t.token_type for t in tokens], get_shift_reduce=True)
+    #HulkParser = JParser(G)
+    parse, operations = HulkParser(tokens, get_shift_reduce=True)
     print('\n'.join(repr(x) for x in parse))
     print('==================== AST ======================')
     ast = evaluate_reverse_parse(parse, operations, tokens)
