@@ -1,8 +1,8 @@
 
 import sys
-sys.path.append('C:/Users/aleja/Documents/GitHub/')
-from HULK.src.cmp.utils import ContainerSet
-from HULK.src.cmp.utils import DisjointSet
+sys.path.append('/home/carlosbreso/Data/Code/Python/HulkCompiler/Hulk/src')
+from cmp.utils import ContainerSet
+from cmp.utils import DisjointSet
 
 # from ..cmp import ContainerSet
 # from ..cmp import DisjointSet

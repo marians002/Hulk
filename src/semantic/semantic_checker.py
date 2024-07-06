@@ -1,13 +1,15 @@
 import sys
-sys.path.append('/home/marian/Documents/MATCOM/Compilación/Hulk Repo/Hulk/')
+sys.path.append('/home/carlosbreso/Data/Code/Python/HulkCompiler/Hulk/src')
 from type_collector import *
 from type_builder import *
 from type_checker import *
 from format_visitor import *
-from src.cmp.grammar import *
-from src.cmp.utils import Token, tokenizer
-from src.parser.ParserLR1 import *
-from src.cmp.evaluation import evaluate_reverse_parse
+from cmp.grammar import *
+from cmp.utils import Token, tokenizer
+from parser.ParserLR1 import *
+from cmp.evaluation import evaluate_reverse_parse
+from lexer.lexer_generator import Lexer
+from lexer.tester import tokens as HulkTokens
 
 text = '''
 class A {
@@ -27,7 +29,7 @@ class B : A {
     }
 }
 '''
-fixed_tokens = {t.Name: Token(t.Name, t) for t in G.terminals if t not in {identifier, number}}
+""" fixed_tokens = {t.Name: Token(t.Name, t) for t in G.terminals if t not in {identifier, number}}
 
 
 @tokenizer(G, fixed_tokens)
@@ -41,10 +43,10 @@ def tokenize_text(token):
 
 
 if __name__ == '__main__':
-    tokens = tokenize_text(text)
+    tokens = tokenize_text(text) """
 
 
-def pprint_tokens(tokens):
+""" def pprint_tokens(tokens):
     indent = 0
     pending = []
     for token in tokens:
@@ -59,18 +61,20 @@ def pprint_tokens(tokens):
     print(' '.join([str(t.token_type) for t in pending]))
 
 
-if __name__ == '__main__':  pprint_tokens(tokens)
+if __name__ == '__main__':  pprint_tokens(tokens) """
 
 
 def run_pipeline(G, text):
     print('=================== TEXT ======================')
     print(text)
     print('================== TOKENS =====================')
-    tokens = tokenize_text(text)
-    pprint_tokens(tokens)
+    HulkLexer = Lexer(HulkTokens, G.EOF)
+    tokens = HulkLexer(text)
+    for t in tokens:
+        print(tokens)
     print('=================== PARSE =====================')
-    parser = LR1Parser(G)
-    parse, operations = parser([t.token_type for t in tokens], get_shift_reduce=True)
+    HulkParser = LR1Parser(G)
+    parse, operations = HulkParser([t.token_type for t in tokens], get_shift_reduce=True)
     print('\n'.join(repr(x) for x in parse))
     print('==================== AST ======================')
     ast = evaluate_reverse_parse(parse, operations, tokens)

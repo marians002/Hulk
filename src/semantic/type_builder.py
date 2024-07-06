@@ -1,8 +1,8 @@
 import sys
-sys.path.append('/home/marian/Documents/MATCOM/Compilación/Hulk Repo/Hulk/')
-from src.cmp import visitor
-from src.cmp.ast_for_hulk import *
-from src.cmp.semantic import *
+sys.path.append('/home/carlosbreso/Data/Code/Python/HulkCompiler/Hulk/src')
+from cmp import visitor
+from cmp.ast_for_hulk import *
+from cmp.semantic import *
 
 
 class TypeBuilder:

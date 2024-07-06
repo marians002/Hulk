@@ -1,4 +1,4 @@
-from lexer_generator import Lexer
+from lexer.lexer_generator import Lexer
 tokens = [
     ("obra", '\{'),
     ("cbra", '\}'),
