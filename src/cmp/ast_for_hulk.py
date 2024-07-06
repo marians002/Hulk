@@ -1,6 +1,5 @@
 class Node:
-    # line = '0'
-    pass
+    scope = None
 
 
 class ProgramNode(Node):

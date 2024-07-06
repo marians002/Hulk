@@ -6,7 +6,7 @@ from src.cmp.ast_for_hulk import *
 from src.cmp.semantic import *
 
 # WRONG_SIGNATURE = 'Method "%s" already defined in "%s" with a different signature.'
-# SELF_IS_READONLY = 'Variable "self" is read-only.'
+SELF_IS_READONLY = 'Variable "self" is read-only.'
 # LOCAL_ALREADY_DEFINED = 'Variable "%s" is already defined in method "%s".'
 # INCOMPATIBLE_TYPES = 'Cannot convert "%s" into "%s".'
 # VARIABLE_NOT_DEFINED = 'Variable "%s" is not defined in "%s".'
@@ -138,6 +138,12 @@ class ScopesFiller:
         self.visit(node.right_exp, scope.create_child())
 
     @visitor.when(EqualNode)
+    def visit(self, node, scope):
+        node.scope = scope
+        self.visit(node.left_exp, scope.create_child())
+        self.visit(node.right_exp, scope.create_child())
+
+    @visitor.when(NotEqualNode)
     def visit(self, node, scope):
         node.scope = scope
         self.visit(node.left_exp, scope.create_child())
