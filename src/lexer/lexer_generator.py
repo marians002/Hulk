@@ -66,7 +66,8 @@ class Lexer:
                 (row, column) = (row, column + 1)
             else:
                 (row, column) = (row, column + len(lex))
-            yield lex, token_type, (row, column)
+            if lex.strip() != "" and lex != "\n":
+                yield lex, token_type, (row, column)
 
         yield '$', self.eof, (row, column)
 
