@@ -151,7 +151,7 @@ class Regex:
         tokens = self._tokenize_regex()
 
         try:
-            parse, operations = regex_parser([token.token_type for token in tokens], get_shift_reduce=True)
+            parse, operations = regex_parser(tokens, get_shift_reduce=True)
         except TypeError:
             print(tokens)
             raise TypeError
