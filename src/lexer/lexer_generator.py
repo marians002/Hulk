@@ -1,5 +1,5 @@
 import sys
-sys.path.append('C:/Users/aleja/Documents/GitHub/HULK/src')
+sys.path.append('/home/carlosbreso/Data/Code/Python/HulkCompiler/Hulk/src')
 from cmp.utils import Token
 from cmp.automata import State
 from lexer.regex import Regex

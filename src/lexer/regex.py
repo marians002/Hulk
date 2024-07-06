@@ -1,10 +1,9 @@
 import sys
-sys.path.append('C:/Users/aleja/Documents/GitHub/HULK/src')
-from automata import *
+sys.path.append('/home/carlosbreso/Data/Code/Python/HulkCompiler/Hulk/src')
+from lexer.automata import *
 from cmp.ast import *
 from cmp.pycompiler import Grammar
 from cmp.utils import Token
-# from cmp.tools.parsing import LR1Parser
 from cmp.evaluation import evaluate_reverse_parse
 from parser.ParserLR1 import LR1Parser
 

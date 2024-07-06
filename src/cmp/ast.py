@@ -1,6 +1,6 @@
 import sys
-sys.path.append('C:/Users/aleja/Documents/GitHub/HULK/src/cmp')
-import visitor as visitor
+sys.path.append('C:/Users/aleja/Documents/GitHub/HULK/src')
+from cmp import visitor as visitor
 
 
 class Node:
