@@ -1,6 +1,6 @@
 import sys
-sys.path.append('/home/marian/Documents/MATCOM/Compilación/Hulk Repo/Hulk/src/cmp')
-import visitor as visitor
+sys.path.append('C:/Users/aleja/Documents/GitHub/HULK/src')
+from cmp import visitor as visitor
 
 
 class Node:

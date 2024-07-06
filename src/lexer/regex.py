@@ -1,6 +1,6 @@
 import sys
-sys.path.append('/home/marian/Documents/MATCOM/Compilación/Hulk Repo/Hulk/src/lexer/')
-from automata import *
+sys.path.append('/home/carlosbreso/Data/Code/Python/HulkCompiler/Hulk/src')
+from lexer.automata import *
 from cmp.ast import *
 from cmp.pycompiler import Grammar
 from cmp.utils import Token
@@ -151,7 +151,7 @@ class Regex:
         tokens = self._tokenize_regex()
 
         try:
-            parse, operations = regex_parser([token.token_type for token in tokens], get_shift_reduce=True)
+            parse, operations = regex_parser(tokens, get_shift_reduce=True)
         except TypeError:
             print(tokens)
             raise TypeError

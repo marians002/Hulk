@@ -1,8 +1,8 @@
 import sys
 sys.path.append('/home/marian/Documents/MATCOM/Compilación/Hulk Repo/Hulk/')
-from src.cmp.utils import Token
-from src.cmp.automata import State
-from src.lexer.regex import Regex
+from cmp.utils import Token
+from cmp.automata import State
+from lexer.regex import Regex
 
 
 class Lexer:
@@ -58,15 +58,16 @@ class Lexer:
             idx, token_type = priority[0]
 
             text = text[len(lex):]
-            if lex == '\n':
-                (row, column) = (row + 1, 1)
-            elif lex == '\t':
-                (row, column) = (row, column + 4)
-            elif lex == ' ':
-                (row, column) = (row, column + 1)
-            else:
-                (row, column) = (row, column + len(lex))
-            yield lex, token_type, (row, column)
+            match lex:
+                case '\n':
+                    (row, column) = (row + 1, 1)
+                case '\t':
+                    (row, column) = (row, column + 4)
+                case ' ':
+                    (row, column) = (row, column + 1)
+                case _:
+                    yield lex, token_type, (row, column)
+                    (row, column) = (row, column + len(lex))
 
         yield '$', self.eof, (row, column)
 
