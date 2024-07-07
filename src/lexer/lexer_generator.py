@@ -50,7 +50,7 @@ class Lexer:
         while text:
            
             final_state, lex = self._walk(text)
-
+            print(lex)
             assert len(lex) != 0, 'Error'
 
             priority = [state.tag for state in final_state.state if state.tag]

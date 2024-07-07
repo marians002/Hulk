@@ -10,60 +10,35 @@ from parser.ParserLR1 import LR1Parser
 from cmp.evaluation import evaluate_reverse_parse
 from lexer.lexer_generator import Lexer
 from lexer.hulk_tokens import HULK_TOKENS
-# from cmp.tools.parsing import LR1Parser as JParser
-
-text = '42;'
-
-""" fixed_tokens = {t.Name: Token(t.Name, t) for t in G.terminals if t not in {identifier, number}}
+from cmp.tools.parsing import LR1Parser as JParser
+from cmp.pycompiler import Grammar
+#from cmp.enemy_token_table import *
 
 
-@tokenizer(G, fixed_tokens)
-def tokenize_text(token):
-    lex = token.lex
-    try:
-        float(lex)
-        return token.transform_to(number)
-    except ValueError:
-        return token.transform_to(identifier)
+myTokens = [
+        ("num", '(0|[1-9][0-9]*)(\.[0-9]+)?'),
+        (";", ';')
+    ]
+
+test_grammar1 = '7;'
+text_hulk = """ let a = 0 in {
+    print(a);
+    a := 1;
+    print(a);
+}; """
 
 
-if __name__ == '__main__':
-    tokens = tokenize_text(text) """
 
-
-""" def pprint_tokens(tokens):
-    indent = 0
-    pending = []
-    for token in tokens:
-        pending.append(token)
-        if token.token_type in {ocur, ccur, semi}:
-            if token.token_type == ccur:
-                indent -= 1
-            print('    ' * indent + ' '.join(str(t.token_type) for t in pending))
-            pending.clear()
-            if token.token_type == ocur:
-                indent += 1
-    print(' '.join([str(t.token_type) for t in pending]))
-
-
-if __name__ == '__main__':  pprint_tokens(tokens) """
-
-
-def run_pipeline(G, text):
+def run_pipeline(G, table, text):
     print('=================== TEXT ======================')
     # print(text)
     print('================== TOKENS =====================')
-    myTokens = [
-        ("number", '((0|[1-9])[0-9]*)(.[0-9]+)?'),
-        ("semi", ';')
-    ]
-    
-    HulkLexer = Lexer(HULK_TOKENS, G.EOF)
+    HulkLexer = Lexer(table, G.EOF)
     tokens = HulkLexer(text)
     for t in tokens:
         print(t)
     #ttypes = [t.token_type for t in tokens]
-    print('=================== PARSE =====================')
+    print('=================== PARSE =====================') 
     HulkParser = LR1Parser(G)
     #HulkParser = JParser(G)
     tokens = [t for t in tokens if t.token_type not in ['comment','space', 'endofline']]
@@ -75,7 +50,7 @@ def run_pipeline(G, text):
     return True
 
 
-if __name__ == '__main__': ast = run_pipeline(G, text)
+if __name__ == '__main__': ast = run_pipeline(G, HULK_TOKENS, text_hulk)
 
 # deprecated_pipeline = run_pipeline
 
