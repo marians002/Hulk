@@ -53,6 +53,11 @@ def run_pipeline(G, text):
     print('=================== TEXT ======================')
     # print(text)
     print('================== TOKENS =====================')
+    myTokens = [
+        ("number", '((0|[1-9])[0-9]*)(.[0-9]+)?'),
+        ("semi", ';')
+    ]
+    
     HulkLexer = Lexer(HULK_TOKENS, G.EOF)
     tokens = HulkLexer(text)
     for t in tokens:
@@ -61,6 +66,7 @@ def run_pipeline(G, text):
     print('=================== PARSE =====================')
     HulkParser = LR1Parser(G)
     #HulkParser = JParser(G)
+    tokens = [t for t in tokens if t.token_type not in ['comment','space', 'endofline']]
     parse, operations = HulkParser(tokens, get_shift_reduce=True)
     print('\n'.join(repr(x) for x in parse))
     print('==================== AST ======================')
