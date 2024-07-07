@@ -1,5 +1,5 @@
 import sys
-sys.path.append('/home/carlosbreso/Data/Code/Python/HulkCompiler/Hulk/src')
+sys.path.append('/home/marian/Documents/MATCOM/Compilación/Hulk Repo/Hulk/src/')
 from type_collector import *
 from type_builder import *
 from scopes_filler import *
@@ -10,7 +10,7 @@ from parser.ParserLR1 import LR1Parser
 from cmp.evaluation import evaluate_reverse_parse
 from lexer.lexer_generator import Lexer
 from lexer.hulk_tokens import HULK_TOKENS
-from cmp.tools.parsing import LR1Parser as JParser
+# from cmp.tools.parsing import LR1Parser as JParser
 
 text = '42;'
 
@@ -49,7 +49,7 @@ if __name__ == '__main__':
 if __name__ == '__main__':  pprint_tokens(tokens) """
 
 
-def run_pipeline(G, text, tokens):
+def run_pipeline(G, text):
     print('=================== TEXT ======================')
     # print(text)
     print('================== TOKENS =====================')
@@ -69,7 +69,7 @@ def run_pipeline(G, text, tokens):
     return True
 
 
-if __name__ == '__main__': ast = run_pipeline(G, text, tokens)
+if __name__ == '__main__': ast = run_pipeline(G, text)
 
 # deprecated_pipeline = run_pipeline
 

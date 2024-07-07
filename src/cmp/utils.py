@@ -132,7 +132,7 @@ class Token:
         self.pos = pos
 
     def __str__(self):
-        return f'{self.token_type}: {self.lex} Pos: {self.pos}'
+        return f'Token type: {self.token_type} Lex: {self.lex} Position = row: {self.pos[0]} col: {self.pos[1]}'
 
     def __repr__(self):
         return str(self)

@@ -160,6 +160,31 @@ class IntType(Type):
         return other.name == self.name or isinstance(other, IntType)
 
 
+class IntrinsicType(Type):
+    def __init__(self):
+        Type.__init__(self, '<auto>')
+
+    def __eq__(self, other):
+        return isinstance(other, IntrinsicType) or other.name == self.name
+
+    def bypass(self):
+        return True
+
+class SelfType(Type):
+    def __init__(self, referred_type: Type = None) -> None:
+        super().__init__('Self')
+        self.referred_type = referred_type
+
+    def get_attribute(self, name: str) -> Attribute:
+        if self.referred_type:
+            return self.referred_type.get_attribute(name)
+
+        return super().get_attribute(name)
+
+    def __eq__(self, other):
+        return isinstance(other, SelfType) or other.name == self.name
+
+
 class Context:
     def __init__(self):
         self.types = {}
@@ -222,3 +247,30 @@ class Scope:
 
     def is_local(self, vname):
         return any(True for x in self.locals if x.name == vname)
+
+
+def get_fca(types: list[Type]):
+    if not types:
+        return None
+    if len(types) == 1:
+        return types[0]
+
+    # check ErrorType:
+    if any(isinstance(item, ErrorType) for item in types):
+        return ErrorType()
+
+    # check AUTO_TYPE
+    # if any(isinstance(item, AutoType) for item in types):
+    #     return AutoType()
+
+    current = types[0]
+    while current:
+        for item in types:
+            if not item.conforms_to(current):
+                break
+        else:
+            return current
+        current = current.parent
+
+    # This part of the code is supposed to be unreachable
+    return None

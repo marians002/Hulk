@@ -17,7 +17,7 @@ class TypeInferer:
         self.current_function = None
         self.current_type = None
         self.i = 0
-        self.max_iters = 10
+        self.max_iters = 3
 
     def valid_iters(self):
         if self.i < self.max_iters:
@@ -343,9 +343,11 @@ class TypeInferer:
 
     @visitor.when(IfNode)
     def visit(self, node: IfNode):
-        for condition in node.conditions:
-            self.visit(condition)
-        return self.context.get_type('Boolean')
+        types_list = []
+        for condition, body in node.conditions:
+            _ = self.visit(condition)
+            types_list.append(self.visit(body))  # Can contain Error Types
+        return get_fca(types_list)
 
     @visitor.when(WhileNode)
     def visit(self, node: WhileNode):
@@ -354,8 +356,35 @@ class TypeInferer:
 
     @visitor.when(ForNode)
     def visit(self, node: ForNode):
-        self.visit(node.exp)
-        return self.visit(node.body)
+        iter_t = self.visit(node.exp)  # Visit the expression to infer its type.
+
+        # Find the variable in the current scope based on the identifier provided in the node.
+        for_var = node.exp.scope.find_variable(node.var.identifier)
+
+        # Check if the inferred type of the expression is an ErrorType, indicating an error.
+        if iter_t is ErrorType():
+            for_var.type = ErrorType()
+        elif iter_t == IntrinsicType():
+            for_var.type = IntrinsicType()  # Assign AutoType if the expression type is auto-determined.
+        elif not iter_t.conforms_to(self.context.get_type('Iterable')):
+            # Append an error message if the inferred type does not conform to 'Iterable'.
+            self.errors.append(f'Expression is not iterable.')
+            for_var.type = ErrorType()
+        else:
+            # If the expression type is iterable, assign the type of the current item as the variable's type.
+            for_var.type = iter_t.get_method('current').return_type
+
+        return self.visit(node.body)  # Visit the body of the loop to infer and return its type.
+
+        # try:
+        #     # print("FOR NODE. TRYING", iter_t)
+        #     var_t = self.context.get_type(node.var.identifier)
+        # except SemanticError as e:
+        #     # print("FOR NODE. ERROR", e)
+        #     # self.errors.append(f'Variable "{node.var.identifier}" is not defined.')
+        #     var_t = AutoType()
+        #
+        # return self.visit(node.body)
 
     @visitor.when(LetNode)
     def visit(self, node: LetNode):
@@ -444,4 +473,4 @@ class TypeInferer:
         ret_t = self.visit(node.exp)
         if ret_t is ErrorType():
             return ErrorType()
-        return self.context.get_type(f'Vector<{ret_t.name}>') # ESTO NO VA A FUNCIONAR
+        return self.context.get_type(f'Vector<{ret_t.name}>')  # ESTO NO VA A FUNCIONAR
