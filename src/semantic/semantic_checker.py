@@ -12,9 +12,31 @@ from lexer.lexer_generator import Lexer
 from lexer.hulk_tokens import HULK_TOKENS
 from cmp.pycompiler import Grammar
 
-text_hulk = """
-let numbers = [1,2,3,4,5,6,7,8,9] in print(numbers[7]);
-        
+text_hulk = """type Point(x,y) {
+    x = x;
+    y = y;
+
+    getX() => self.x;
+    getY() => self.y;
+
+    setX(x: Number) => self.x := x;
+    setY(y: Number) => self.y := y;
+}
+
+type PolarPoint inherits Point {
+    rho() => sqrt(self.getX() ^ 2 + self.getY() ^ 2);
+}
+
+type Polar(phi, rho) inherits Point(rho * sin(phi), rho * cos(phi)) {
+    rho() => sqrt(self.getX() ^ 2 + self.getY() ^ 2);
+}
+
+let pt = new Point(3,4) in {
+    new Polar(1,2);
+    print("x: " @ pt.getX() @ "; y: " @ pt.getY());
+}
+
+
 """       
 
 
@@ -35,7 +57,31 @@ def run_pipeline(G, table, text):
     print('\n'.join(repr(x) for x in parse))
     print('==================== AST ======================')
     ast = evaluate_reverse_parse(parse, operations, tokens)
-    
+      
+    print('============== COLLECTING TYPES ===============')
+    errors = []
+    collector = TypeCollector(errors)
+    collector.visit(ast)
+    context = collector.context
+    print('Errors:', errors)
+    print('Context:')
+    print(context)
+    print('=============== BUILDING TYPES ================')
+    builder = TypeBuilder(context, errors)
+    builder.visit(ast)
+    print('Errors: [')
+    for error in errors:
+        print('\t', error)
+    print(']')
+    print('Context:')
+    print(context)
+    print('=============== CHECKING TYPES ================')
+    filler = ScopesFiller(context, errors)
+    scope = filler.visit(ast)
+    print('Errors: [')
+    for error in errors:
+        print('\t', error)
+    print(']')
     return True
 
 

@@ -117,7 +117,6 @@ statement_list %= statement, lambda h, s: [s[1]]
 statement_list %= simple_exp, lambda h,s:[s[1]]
 
 # region BORRAR
-simple_exp %= new + identifier + opar + args + cpar, lambda h, s: NewNode(s[2], s[4])   
 simple_exp %= destructive_assign, lambda h, s:s[1]
 simple_exp %= let + var_decl + inx + expression, lambda h, s: LetNode(s[2], s[4])
 simple_exp %= whilet + opar + condition + cpar + expression, lambda h, s: WhileNode(s[3], s[5])
@@ -189,6 +188,7 @@ atom %= invoque_func, lambda h, s: s[1]
 atom %= opar + simple_exp + cpar, lambda h, s: s[2]
 atom %= obr + args + cbr, lambda h, s: VectorNode(s[2])
 atom %= obr + simple_exp + dble_bar + identifier + inx + simple_exp + cbr, lambda h, s: VectorComprNode(DeclareVarNode(s[4], None, None), s[2], s[6])
+atom %= new + identifier + opar + args + cpar, lambda h, s: NewNode(s[2], s[4])   
 
 invoque_func %= identifier + opar + args + cpar, lambda h, s: InvoqueFuncNode(s[1], s[3])
 
