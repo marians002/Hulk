@@ -5,47 +5,36 @@ from type_builder import *
 from scopes_filler import *
 from format_visitor import *
 from cmp.grammar import *
-from cmp.utils import Token, tokenizer
+from cmp.utils import Token
 from parser.ParserLR1 import LR1Parser
 from cmp.evaluation import evaluate_reverse_parse
 from lexer.lexer_generator import Lexer
 from lexer.hulk_tokens import HULK_TOKENS
-from cmp.tools.parsing import LR1Parser as JParser
 from cmp.pycompiler import Grammar
-#from cmp.enemy_token_table import *
 
-
-myTokens = [
-        ("num", '(0|[1-9][0-9]*)(\.[0-9]+)?'),
-        (";", ';')
-    ]
-
-test_grammar1 = '7;'
-text_hulk = """ let a = 0 in {
-    print(a);
-    a := 1;
-    print(a);
-}; """
+text_hulk = """
+let numbers = [1,2,3,4,5,6,7,8,9] in print(numbers[7]);
+        
+"""       
 
 
 
 def run_pipeline(G, table, text):
     print('=================== TEXT ======================')
-    # print(text)
+    print(text)
+
     print('================== TOKENS =====================')
     HulkLexer = Lexer(table, G.EOF)
     tokens = HulkLexer(text)
-    for t in tokens:
-        print(t)
-    #ttypes = [t.token_type for t in tokens]
+    # for t in tokens:
+    #     print(t)
     print('=================== PARSE =====================') 
     HulkParser = LR1Parser(G)
-    #HulkParser = JParser(G)
-    tokens = [t for t in tokens if t.token_type not in ['comment','space', 'endofline']]
+    tokens = [t for t in tokens if t.token_type not in ('comment',)]
     parse, operations = HulkParser(tokens, get_shift_reduce=True)
     print('\n'.join(repr(x) for x in parse))
     print('==================== AST ======================')
-    ast = evaluate_reverse_parse(parse, operations, tokens_test)
+    ast = evaluate_reverse_parse(parse, operations, tokens)
     
     return True
 

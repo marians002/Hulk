@@ -12,9 +12,9 @@ rarrow, at, atat, sharp, dstr_assign, dble_bar = G.Terminals("=> @ @@ # := ||")
 equal, plus, minus, star, starstar, div, sqr, mod = G.Terminals("= + - * ** / ^ %")
 less, leq, great, geq, noteq, eqeq = G.Terminals("< <= > >= != ==")
 
-new, inherits, self, typet = G.Terminals("new inherits self type")
+new, inherits, typet = G.Terminals("new inherits type")
 function, protocol, extends = G.Terminals("function protocol extends")
-ift, elset, elift, whilet, fort, ranget, let, inx, ist, asx = G.Terminals("if else elif while for range let in is as")
+ift, elset, elift, whilet, fort, let, inx, ist, asx = G.Terminals("if else elif while for let in is as")
 identifier, number, string, boolean = G.Terminals("identifier number string bool")
 
 # Non-Terminals
@@ -27,18 +27,17 @@ params, params_list = G.NonTerminals("<params> <params_list>")
 typed_params, typed_params_list = G.NonTerminals("<typed_params> <typed_params_list>")
 attr, attr_list = G.NonTerminals("<attr> <attr_list>")
 args, args_list = G.NonTerminals("<args> <args_list>")
-simple_exp, exp_block = G.NonTerminals("<exp> <exp_block>")
+simple_exp, exp_block, expression = G.NonTerminals("<exp> <exp_block> <expression>")
 type_decl, function_decl, protocol_decl, method_decl = G.NonTerminals(
     "<type_decl> <function_decl> <protocol_decl> <method_decl>")
 method_decl_col, typed_method_decl_list, typed_method_decl = G.NonTerminals(
     "<method_decl_col> <typed_method_decl_list> <typed_method_decl>")
 molecule, atom = G.NonTerminals("<molecule> <atom>")
 elifn, var_decl = G.NonTerminals("<elifn> <var_decl>")
-string_exp, single_exp = G.NonTerminals("<string_exp> <single_exp>")
+concat_exp, single_exp = G.NonTerminals("<concat_exp> <single_exp>")
 condition, disjunction, not_comp_exp, comparer = G.NonTerminals("<condition> <disjunction> <not_comp_exp> <comparer>")
 arith, term, factor, unary_exp = G.NonTerminals("<arith_expr> <term> <factor> <unary_exp>")
-invoque_func = G.NonTerminal("<invoque_func>")
-loop, assignment = G.NonTerminals("<loop> <assignment>")
+invoque_func, destructive_assign = G.NonTerminals("<invoque_func> <destructive_assign>")
 
 # Productions
 program %= decl_list + global_exp, lambda h, s: ProgramNode(s[1], s[2])
@@ -49,6 +48,9 @@ decl_list %= declaration + decl_list, lambda h, s: [s[1]] + s[2]
 declaration %= function_decl, lambda h, s: s[1]
 declaration %= type_decl, lambda h, s: s[1]
 declaration %= protocol_decl, lambda h, s: s[1]
+
+expression %= exp_block, lambda h, s:s[1]
+expression %= simple_exp, lambda h, s:s[1]
 
 function_decl %= function + identifier + opar + params + cpar + rarrow + statement, lambda h, s: FunctionNode(s[2], s[4], None, s[7])
 function_decl %= function + identifier + opar + params + cpar + exp_block, lambda h, s: FunctionNode(s[2], s[4], None, s[6])
@@ -74,7 +76,7 @@ type_decl %= typet + identifier + ocur + attr_list + ccur, lambda h, s: TypeNode
 type_decl %= typet + identifier + opar + params + cpar + ocur + attr_list + ccur, lambda h, s: TypeNode(s[2], None, s[4], [], s[7])
 # type Person inherits Human {...}
 type_decl %= typet + identifier + inherits + identifier + ocur + attr_list + ccur, lambda h, s: TypeNode(s[2], s[4], [], [], s[6])
-# type Person(x,y) inherits Human {...}   ********** QUIZAS INNECESARIA **********
+# type Person(x,y) inherits Human {...}
 type_decl %= typet + identifier + opar + params + cpar + inherits + identifier + ocur + attr_list + ccur, lambda h, s: TypeNode(s[2], s[7], s[4], [], s[9])
 # type Person(x,y) inherits Human(x,y) {...}
 type_decl %= typet + identifier + opar + params + cpar + inherits + identifier + opar + args + cpar + ocur + attr_list + ccur, lambda h, s: TypeNode(s[2], s[7], s[4], s[9], s[12])
@@ -102,38 +104,43 @@ typed_params %= typed_params_list, lambda h, s: s[1]
 typed_params_list %= identifier + colon + identifier, lambda h, s: [DeclareVarNode(s[1], s[3], None)]
 typed_params_list %= identifier + colon + identifier + comma + typed_params_list, lambda h, s: [DeclareVarNode(s[1], s[3], None)] + s[5]
 
+global_exp %= simple_exp, lambda h, s: s[1]
 global_exp %= statement, lambda h, s: s[1]
-global_exp %= exp_block, lambda h, s: s[1]
 
-statement %= simple_exp + semi, lambda h, s: s[1]
+statement %= expression + semi, lambda h, s: s[1]
+statement %= exp_block, lambda h, s: s[1]
 
 exp_block %= ocur + statement_list + ccur, lambda h, s: BlockNode(s[2])
 
-statement_list %= G.Epsilon, lambda h, s: []  # check consequences of this every time
 statement_list %= statement + statement_list, lambda h, s: [s[1]] + s[2]
+statement_list %= statement, lambda h, s: [s[1]]
+statement_list %= simple_exp, lambda h,s:[s[1]]
 
-simple_exp %= single_exp, lambda h, s: s[1]
-simple_exp %= new + identifier + opar + args + cpar, lambda h, s: NewNode(s[2], s[4])
-simple_exp %= molecule + assignment + simple_exp, lambda h, s: AssignNode(s[1], s[3])
-simple_exp %= let + var_decl + inx + simple_exp, lambda h, s: LetNode(s[2], s[4])
-simple_exp %= whilet + opar + condition + cpar + simple_exp, lambda h, s: WhileNode(s[3], s[5])
-simple_exp %= fort + opar + identifier + inx + simple_exp + cpar + simple_exp, lambda h, s: ForNode(DeclareVarNode(s[3], None, None), s[5], s[7])
-simple_exp %= ift + opar + condition + cpar + simple_exp + elifn + elset + simple_exp, lambda h, s: IfNode([(s[3], s[5])] + s[6] + [(BoolNode(True), s[8])])
+# region BORRAR
+simple_exp %= new + identifier + opar + args + cpar, lambda h, s: NewNode(s[2], s[4])   
+simple_exp %= destructive_assign, lambda h, s:s[1]
+simple_exp %= let + var_decl + inx + expression, lambda h, s: LetNode(s[2], s[4])
+simple_exp %= whilet + opar + condition + cpar + expression, lambda h, s: WhileNode(s[3], s[5])
+simple_exp %= fort + opar + identifier + inx + expression + cpar + expression, lambda h, s: ForNode(DeclareVarNode(s[3], None, None), s[5], s[7])
+simple_exp %= ift + opar + condition + cpar + expression + elifn + elset + expression, lambda h, s: IfNode([(s[3], s[5])] + s[6] + [(BoolNode(True), s[8])])
 
-single_exp %= string_exp, lambda h, s: s[1]
-single_exp %= string_exp + asx + identifier, lambda h, s: AsNode(s[1], s[3])
+destructive_assign %= single_exp + dstr_assign + destructive_assign, lambda h, s: AssignNode(s[1], s[3])
+destructive_assign %= single_exp, lambda h, s: s[1]
+
+single_exp %= concat_exp, lambda h, s: s[1]
+single_exp %= concat_exp + asx + identifier, lambda h, s: AsNode(s[1], s[3])
 
 elifn %= G.Epsilon, lambda h, s: []
-elifn %= elift + opar + condition + cpar + simple_exp + elifn, lambda h, s: [(s[3], s[5])] + s[6]
+elifn %= elift + opar + condition + cpar + expression + elifn, lambda h, s: [(s[3], s[5])] + s[6]
 
 var_decl %= identifier + equal + simple_exp, lambda h, s: [DeclareVarNode(s[1], None, s[3])]
 var_decl %= identifier + equal + simple_exp + comma + var_decl, lambda h, s: [DeclareVarNode(s[1], None, s[3])] + s[5]
 var_decl %= identifier + colon + identifier + equal + simple_exp, lambda h, s: [DeclareVarNode(s[1], s[3], s[5])]
 var_decl %= identifier + colon + identifier + equal + simple_exp + comma + var_decl, lambda h, s: [DeclareVarNode(s[1], s[3], s[5])] + s[7]
 
-string_exp %= condition, lambda h, s: s[1]
-string_exp %= string_exp + at + condition, lambda h, s: ConcatNode(s[1], s[3])
-string_exp %= string_exp + atat + condition, lambda h, s: ConcatNode(s[1], s[3])
+concat_exp %= condition, lambda h, s: s[1]
+concat_exp %= concat_exp + at + condition, lambda h, s: ConcatNode(s[1], s[3])
+concat_exp %= concat_exp + atat + condition, lambda h, s: ConcatNode(s[1], s[3])
 
 condition %= disjunction, lambda h, s: s[1]
 condition %= condition + andt + disjunction, lambda h, s: AndNode(s[1], s[3])
@@ -179,7 +186,6 @@ atom %= number, lambda h, s: NumberNode(s[1])
 atom %= string, lambda h, s: BoolNode(s[1])
 atom %= boolean, lambda h, s: StringNode(s[1])
 atom %= invoque_func, lambda h, s: s[1]
-atom %= exp_block, lambda h, s: s[1]
 atom %= opar + simple_exp + cpar, lambda h, s: s[2]
 atom %= obr + args + cbr, lambda h, s: VectorNode(s[2])
 atom %= obr + simple_exp + dble_bar + identifier + inx + simple_exp + cbr, lambda h, s: VectorComprNode(DeclareVarNode(s[4], None, None), s[2], s[6])
@@ -191,9 +197,3 @@ args %= simple_exp + args_list, lambda h, s: [s[1]] + s[2]
 
 args_list %= G.Epsilon, lambda h, s: []
 args_list %= comma + simple_exp + args_list, lambda h, s: [s[2]] + s[3]
-
-
-
-
-
-

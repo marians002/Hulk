@@ -48,9 +48,7 @@ class Lexer:
     def _tokenize(self, text):
         (row, column) = (1, 1)
         while text:
-           
             final_state, lex = self._walk(text)
-            print(lex)
             assert len(lex) != 0, 'Error'
 
             priority = [state.tag for state in final_state.state if state.tag]
@@ -72,4 +70,4 @@ class Lexer:
         yield '$', self.eof, (row, column)
 
     def __call__(self, text):
-        return [Token(lex, ttype, pos) for lex, ttype, pos in self._tokenize(text)]
+        return [Token(lex, token_type, pos) for lex, token_type, pos in self._tokenize(text)]

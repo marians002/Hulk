@@ -45,7 +45,6 @@ HULK_TOKENS = [
                
     (inherits, 'inherits'),            
     (extends, 'extends'),
-    (self, 'self'), 
     (typet, 'type'),
     
     (function, 'function'), 
@@ -57,20 +56,19 @@ HULK_TOKENS = [
     (elift, 'elif'), 
     (whilet, 'while'), 
     (fort , 'for'), 
-    (ranget, 'range'), 
     (let, 'let'), 
     
     (inx, 'in'), 
     (ist, 'is'),            
     (asx, 'as'),
     
-    ("constant", 'E | PI'),
     (identifier, '[_a-zA-Z][_a-zA-Z0-9]*'),        
-    (number, '(0|[1-9]([0-9])*)(.[0-9]+)?'),
+    (number, '(0|[1-9]([0-9])*)(\.[0-9]+)?'),
     (string, '"([\x00-!#-\x7f]|\\\\")*"'), 
     (boolean, 'true|false'),
     ("space", ' '),
-    ("endofline", '\n')
+    ("endofline", '\n'),
+    ("tab", '\t' )
     ]
 
 HULK_TOKENS.append(('comment','//[\x00-\x09\x0b-\x7f]*\n'))
