@@ -4,6 +4,7 @@ from type_collector import *
 from type_builder import *
 from scopes_filler import *
 from format_visitor import *
+from type_inferer import *
 from cmp.grammar import *
 from cmp.utils import Token
 from parser.ParserLR1 import LR1Parser
@@ -23,20 +24,11 @@ text_hulk = """type Point(x,y) {
     setY(y: Number) => self.y := y;
 }
 
-type PolarPoint inherits Point {
-    rho() => sqrt(self.getX() ^ 2 + self.getY() ^ 2);
-}
-
-type Polar(phi, rho) inherits Point(rho * sin(phi), rho * cos(phi)) {
-    rho() => sqrt(self.getX() ^ 2 + self.getY() ^ 2);
-}
 
 let pt = new Point(3,4) in {
-    new Polar(1,2);
+    new PolarP(1,2);
     print("x: " @ pt.getX() @ "; y: " @ pt.getY());
 }
-
-
 """       
 
 
@@ -45,12 +37,13 @@ def run_pipeline(G, table, text):
     print('=================== TEXT ======================')
     print(text)
 
-    print('================== TOKENS =====================')
+    print('================== TOKENIZING =====================')
+    
     HulkLexer = Lexer(table, G.EOF)
     tokens = HulkLexer(text)
-    # for t in tokens:
-    #     print(t)
-    print('=================== PARSE =====================') 
+
+    print('=================== PARSING =====================')
+
     HulkParser = LR1Parser(G)
     tokens = [t for t in tokens if t.token_type not in ('comment',)]
     parse, operations = HulkParser(tokens, get_shift_reduce=True)
@@ -61,27 +54,45 @@ def run_pipeline(G, table, text):
     print('============== COLLECTING TYPES ===============')
     errors = []
     collector = TypeCollector(errors)
-    collector.visit(ast)
-    context = collector.context
+    context, errors = collector.visit(ast)
+    # context = collector.context
     print('Errors:', errors)
     print('Context:')
     print(context)
+    print(ast)
+    
     print('=============== BUILDING TYPES ================')
     builder = TypeBuilder(context, errors)
-    builder.visit(ast)
+    print('AST type:', type(ast))
+    context, errors = builder(ast)
     print('Errors: [')
     for error in errors:
         print('\t', error)
     print(']')
     print('Context:')
     print(context)
-    print('=============== CHECKING TYPES ================')
+    
+    print('=============== FILLING SCOPES ================')
     filler = ScopesFiller(context, errors)
     scope = filler.visit(ast)
+    errors = filler.errors
     print('Errors: [')
     for error in errors:
         print('\t', error)
     print(']')
+
+    print('================== INFERING TYPES ==================')
+    inferer = TypeInferer(context, errors)
+    inferer.visit(ast)
+    context, errors = inferer.context,  inferer.errors
+
+    print('Errors: [')
+    for error in errors:
+        print('\t', error)
+    print(']')
+
+    print('================== CHECKING TYPES ==================')
+    print("NOT IMPLEMENTED")
     return True
 
 

@@ -1,18 +1,22 @@
 import sys
 
-sys.path.append('/home/marian/Documents/MATCOM/Compilación/Hulk Repo/Hulk/')
-from src.cmp import visitor
-from src.cmp.ast_for_hulk import *
-from src.cmp.semantic import *
+sys.path.append('/home/marian/Documents/MATCOM/Compilación/Hulk Repo/Hulk/src')
+from cmp import visitor
+from cmp.ast_for_hulk import *
+from cmp.semantic import *
 
 
-class TypeBuilder:
+class TypeBuilder(object):
     def __init__(self, context, errors=None):
         if errors is None:
             errors = []
         self.context = context
         self.current_type = None
         self.errors = errors
+
+    def __call__(self, ast : ProgramNode):
+        self.visit(ast)
+        return self.context, self.errors
 
     @visitor.on('node')
     def visit(self, node):
@@ -93,7 +97,7 @@ class TypeBuilder:
 
     @visitor.when(TypeNode)
     def visit(self, node: TypeNode):
-
+        print("INSIDE TYPE NODE IN TYPE BUILDER: ", node.identifier)
         if node.identifier.startswith('<error>'):
             return
 

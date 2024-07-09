@@ -1,9 +1,9 @@
 import sys
 
-sys.path.append('/home/marian/Documents/MATCOM/Compilación/Hulk Repo/Hulk/')
-from src.cmp import visitor
-from src.cmp.ast_for_hulk import *
-from src.cmp.semantic import *
+sys.path.append('/home/marian/Documents/MATCOM/Compilación/Hulk Repo/Hulk/src')
+from cmp import visitor
+from cmp.ast_for_hulk import *
+from cmp.semantic import *
 
 # WRONG_SIGNATURE = 'Method "%s" already defined in "%s" with a different signature.'
 SELF_IS_READONLY = 'Variable "self" is read-only.'
@@ -68,15 +68,16 @@ class ScopesFiller:
 
     @visitor.when(TypeNode)
     def visit(self, node: TypeNode, scope):
+        print("INSIDE TYPE NODE IN SCOPES FILLER: ", node.identifier)
         node.scope = scope
         t_scope = scope.create_child()
         self.current_type = self.context.get_type(node.identifier)
         # attributes = self.current_type.all_attributes()
         for param in node.params:
             try:
-                node.scope.define_variable(param.id, self.context.get_type(param))
+                node.scope.define_variable(param.identifier, self.context.get_type(param))
             except SemanticError:
-                node.scope.define_variable(param.id, self.context.get_type('Object'))
+                node.scope.define_variable(param.identifier, self.context.get_type('Object'))
         for attr in node.attr_list:
             self.visit(attr, t_scope)
         self.current_type = None
@@ -276,8 +277,8 @@ class ScopesFiller:
     def visit(self, node: WhileNode, scope):
         # print("WHILE NODE")
         node.scope = w_scope = scope.create_child()
-        self.visit(node.condition, w_scope.create_child())
-        self.visit(node.body, w_scope.create_child())
+        self.visit(node.condition, w_scope)
+        self.visit(node.body, w_scope)
 
     @visitor.when(ForNode)
     def visit(self, node: ForNode, scope):

@@ -1,6 +1,8 @@
-from src.cmp import visitor
-from src.cmp.ast_for_hulk import *
-from src.cmp.semantic import *
+import sys
+sys.path.append('/home/marian/Documents/MATCOM/Compilación/Hulk Repo/Hulk/src')
+from cmp import visitor
+from cmp.ast_for_hulk import *
+from cmp.semantic import *
 
 
 def check_id(node):
@@ -17,10 +19,10 @@ class TypeInferer:
         self.current_function = None
         self.current_type = None
         self.i = 0
-        self.max_iters = 3
+        self.max_i = 3
 
     def valid_iters(self):
-        if self.i < self.max_iters:
+        if self.i < self.max_i:
             self.i += 1
             return True
         return False
@@ -80,7 +82,7 @@ class TypeInferer:
 
         self.current_type = self.context.get_type(node.identifier)
 
-        if self.current_type.inherits and self.current_type.inherits is ErrorType():
+        if self.current_type.parent and self.current_type.parent is ErrorType():
             self.errors.append(f'Type "{node.identifier}" inherits from an invalid type.')
 
     @visitor.when(ProtocolNode)
@@ -92,9 +94,9 @@ class TypeInferer:
         self.current_type = self.context.get_type(node.identifier)
 
         # Check if the current type extends another type.
-        if self.current_type.extends:
+        if self.current_type.parent:
             # Retrieve the type that the current type extends.
-            p_type = self.current_type.extends
+            p_type = self.current_type.parent
             # If the extended type is an ErrorType, log an error indicating an invalid extension.
             if p_type is ErrorType():
                 self.errors.append(f'Protocol "{node.identifier}" extends from an invalid type.')
@@ -280,7 +282,10 @@ class TypeInferer:
 
         try:
             # Attempt to find the variable in the current scope by its identifier and return its type.
-            return node.scope.find_variable(node.identifier).type
+            var = node.scope.find_variable(node.identifier)
+            if not var:
+                raise SemanticError
+            return self.context.get_type(var.id)
         except SemanticError:
             # If the variable is not found, log an error and return an ErrorType.
             self.errors.append(f'Variable "{node.identifier}" is not defined.')
@@ -411,7 +416,7 @@ class TypeInferer:
     @visitor.when(NewNode)
     def visit(self, node: NewNode):
         try:
-            # Attempt to retrieve the type from the context using the node's type_name.
+            # Attempt to retrieve the type from the context using the node's type_name."
             t = self.context.get_type(node.type_name)
             args_t = []
             for arg in node.args:
