@@ -21,8 +21,9 @@ class Attribute:
 
 
 class Method:
-    def __init__(self, name, param_names, params_types, return_type):
+    def __init__(self, name, param_names, params_types, return_type, node = None):
         self.name = name
+        self.nonde = node
         self.param_names = param_names
         self.param_types = params_types
         self.return_type = return_type
@@ -352,15 +353,20 @@ class Scope:
 
     def define_variable(self, vname, vtype):
         info = VariableInfo(vname, vtype)
+        if self.is_local(vname):
+            raise SemanticError(f'Variable "{vname}" already defined in scope')
         self.locals.append(info)
         return info
 
     def find_variable(self, vname, index=None):
-        locals = self.locals if index is None else itt.islice(self.locals, index)
+        locals = self.locals
         try:
             return next(x for x in locals if x.name == vname)
         except StopIteration:
-            return self.parent.find_variable(vname, self.index) if self.parent is None else None
+            if self.parent is not None:
+                return self.parent.find_variable(vname, self.index) 
+            else:
+                raise SemanticError(f'Variable "{vname}" not found in scope')
 
     def is_defined(self, vname):
         return self.find_variable(vname) is not None
@@ -379,9 +385,9 @@ def get_fca(types: list[Type]):
     if any(isinstance(item, ErrorType) for item in types):
         return ErrorType()
 
-    # check AUTO_TYPE
-    # if any(isinstance(item, AutoType) for item in types):
-    #     return AutoType()
+    # check IntrinsicType:
+    if any(isinstance(item, IntrinsicType) for item in types):
+        return IntrinsicType()
 
     current = types[0]
     while current:
@@ -394,3 +400,19 @@ def get_fca(types: list[Type]):
 
     # This part of the code is supposed to be unreachable
     return None
+
+def get_common_type(types: list[Type]):
+    if not types:
+        return ErrorType()
+    if any(isinstance(item, IntrinsicType) for item in types):
+        return IntrinsicType()
+    if any(isinstance(item, ErrorType) for item in types):
+        return ErrorType()
+
+    current = types[0]
+    for item in types[1:]:
+        if item.conforms_to(current):
+            current = item
+        elif not current.conforms_to(item):
+            raise SemanticError(f'Cannot find a common type for {", ".join(x.name for x in types)}')
+    return current

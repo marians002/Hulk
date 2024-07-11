@@ -11,8 +11,20 @@ def check_id(node):
 
 class TypeInferer:
 
+    def assign_auto_type(self, node: Node, scope: Scope, inf_t: Type | Protocol):
+        if isinstance(node, VarNode) and scope.is_defined(node.identifier):
+            var = scope.find_variable(node.identifier)
+            if var.type != IntrinsicType() or var.type == ErrorType():
+                return
+            var.type = inf_t
+            if not isinstance(inf_t, IntrinsicType):
+                self.upd = True
+        if isinstance(node, IndexNode):
+            self.assign_auto_type(node.exp, scope, VectorType(inf_t))
+        
+
     def __init__(self, context, errors=None):
-        self.context = context
+        self.context: Context = context
         if errors is None:
             errors = []
         self.errors = errors
@@ -47,18 +59,17 @@ class TypeInferer:
             return node.ret_type
 
         # Determine the function object:
-        # if within a type, get it from the current type;
-        # otherwise, from the global context.
+        # if within a type, get it from the current type; otherwise, from the global context.
         if self.current_type:
             func = self.current_type.get_method(node.identifier)
         else:
-            func = self.context.get_type("Function").get_method(node.identifier)
+            func = self.context.get_function(node.identifier)
 
         # Visit the body of the function to determine its return type.
         b_type = self.visit(node.body)
 
         # Set the function's return type in its scope. If a specific return type is declared
-        # and it's not 'Object', use the declared type.
+        # and it's not 'IntrinsicType', use the declared type.
         # Otherwise, use the inferred type from the function body.
         if node.ret_type and node.ret_type != IntrinsicType():
             node.scope.ret_type = self.context.get_type(node.ret_type)
@@ -66,8 +77,34 @@ class TypeInferer:
             node.scope.ret_type = b_type
             func.return_type = b_type
 
+        # If it is a global function, process its parameters:
+        if not self.current_type:
+            for param in node.params:
+                local_var = node.body.scope.find_variable(param.identifier)
+                p_type = local_var.type = self.context.get_type(param.type_name)
+                
+                # Check if the parameter type can be inferred in the body:
+                if isinstance(p_type, IntrinsicType):
+                    try:
+                        new_t = get_common_type(p_type, self.visit(local_var.value))
+                    except SemanticError:
+                        self.errors.append(f'Parameter "{param.identifier}" type cannot be inferred.')
+                        new_t = ErrorType()
+                    func.param_types.append(new_t)
+                    if not isinstance(new_t, IntrinsicType):
+                        self.upd = True
+                    local_var.type = new_t
+                
+                # Check if the parameter type can be inferred in any call:
+                if isinstance(p_type, IntrinsicType):
+                    new_t = get_fca(func.param_types)
+                    p_type = new_t
+                    if not isinstance(new_t, IntrinsicType):
+                        self.upd = True
+                    local_var.type = new_t
         # Reset the current function context to None after processing the function.
-        self.current_function = None
+        self.current_function = None   
+        return b_type
 
     @visitor.when(TypeNode)
     def visit(self, node: TypeNode):
@@ -76,9 +113,36 @@ class TypeInferer:
             return
 
         self.current_type = self.context.get_type(node.identifier)
+        if len(node.params) == 0 and node.parent:
+            try:
+                params = self.context.get_type(node.inherits).attributes
+            except SemanticError as e:
+                self.errors.append(f'Type "{node.inherits}" is not defined.')
+                return
+            for param in params:
+                node.params.append(DeclareVarNode(param.name, param.type.name if param.type != IntrinsicType() else None, None))
+                node.args.append(VarNode(param.name))
+                try:
+                    self.current_type.define_attribute('PS'+param.name+'PE', node.scope.find_variable(param).type)
+                except SemanticError as e:
+                    self.current_type.define_attribute('PS'+param.name+'PE', IntrinsicType())
 
-        if self.current_type.parent and self.current_type.parent is ErrorType():
-            self.errors.append(f'Type "{node.identifier}" inherits from an invalid type.')
+            else:
+                for param in node.params:
+                    add=True
+                    if param.identifier in [attr.name for attr in self.current_type.attributes]:
+                        add = False
+                    try:
+                        self.current_type.define_attribute('PS'+param.identifier+'PE', node.scope.find_variable(param.identifier).type)
+                    except SemanticError as e:
+                        self.current_type.define_attribute('PS'+param.identifier+'PE', IntrinsicType())
+
+        if self.current_type.parent:
+            if type(self.current_type.parent) == ErrorType():
+                self.errors.append(f'Invalid parent type for {node.identifier}')
+        for attr in node.attr_list:
+            self.visit(attr)
+        self.current_type = None
 
     @visitor.when(ProtocolNode)
     def visit(self, node: ProtocolNode):
@@ -86,7 +150,7 @@ class TypeInferer:
             return
 
         # Set the current type context to the type defined by the node's identifier.
-        self.current_type = self.context.get_type(node.identifier)
+        self.current_type = self.context.get_protocol(node.identifier)
 
         # Check if the current type extends another type.
         if self.current_type.parent:
@@ -108,11 +172,10 @@ class TypeInferer:
         if check_id(node):
             return
 
-        # If variable has an invalid name, return the error type.
-        # if node.identifier == 'self':
-        #     return self.current_type
+        if node.identifier == 'self':
+            return self.current_type
 
-        if node.type_name:
+        if node.type_name:  
             # Attempt to get the type of the variable from the context.
             try:
                 v_type = self.context.get_type(node.type_name)
@@ -121,15 +184,13 @@ class TypeInferer:
                 v_type = ErrorType()
         else:
             # If no type name is provided, default to the 'Object' type.
-            v_type = self.context.get_type('Object')
+            v_type = IntrinsicType()
 
         # Visit the value of the variable to infer its type.
-        e_type = self.visit(node.value)
-
-        # If the variable type is 'Object', it means its type is not explicitly declared.
-        # In this case, update the variable's type in its scope to the inferred type from its value.
-        if v_type.name == self.context.get_type('Object').name:
-            node.scope.find_variable(node.identifier).type = e_type
+        exp_t = self.visit(node.value)
+        var = node.scope.find_variable(node.identifier)
+        var.type = var.type if var.type != IntrinsicType() or var.type is not ErrorType() else exp_t
+        return var.type
 
     @visitor.when(BlockNode)
     def visit(self, node: BlockNode):
@@ -162,12 +223,6 @@ class TypeInferer:
         return self.context.get_type('String')
 
     @visitor.when(EqualNode)
-    def visit(self, node: EqualNode):
-        left_t = self.visit(node.left_exp)
-        right_t = self.visit(node.right_exp)
-        return self.context.get_type('Boolean')
-
-    @visitor.when(NotEqualNode)
     def visit(self, node: EqualNode):
         left_t = self.visit(node.left_exp)
         right_t = self.visit(node.right_exp)
@@ -278,22 +333,15 @@ class TypeInferer:
         try:
             # Attempt to find the variable in the current scope by its identifier and return its type.
             var = node.scope.find_variable(node.identifier)
-            if not var:
-                raise SemanticError
-            return self.context.get_type(var.id)
-        except SemanticError:
+        except SemanticError as ex:
             # If the variable is not found, log an error and return an ErrorType.
             self.errors.append(f'Variable "{node.identifier}" is not defined.')
             return ErrorType()
+        return var.type
 
     @visitor.when(InvoqueFuncNode)
     def visit(self, node: InvoqueFuncNode):
-        args_t = []
-        for arg in node.args:
-            # Iterate through each argument in the node's arguments list and visit them.
-            # The result of visiting (type inference or other processing) is appended to args_t.
-            args_t.append(self.visit(arg))
-
+        args_t = [self.visit(arg) for arg in node.args]
         function = node.identifier
         current = 'Function'
 
@@ -304,10 +352,12 @@ class TypeInferer:
         try:
             # Attempt to retrieve the function definition from the context using the node's identifier.
             # This includes getting the function's type and method details.
-            function = self.context.get_type('Function').get_method(node.identifier)
+            function = self.context.get_type(current).get_method(function)
         except SemanticError:
             # If the function cannot be found in the context, log an error.
             self.errors.append(f'Function "{node.identifier}" is not defined.')
+            for arg in node.args:
+                self.visit(arg)
             return ErrorType()
 
         if len(args_t) != len(function.param_types):
@@ -316,7 +366,6 @@ class TypeInferer:
                                f'but {len(args_t)} were provided.')
             # Return an ErrorType to indicate the type error due to incorrect argument count.
             return ErrorType()
-        # If all checks pass, return the function's return type as the result of this visit.
         return function.return_type
 
     @visitor.when(AttrCallNode)
@@ -343,8 +392,10 @@ class TypeInferer:
                 # If it's a valid type, return the type of the method.
                 return object_t.get_method(node.function.identifier).return_type
             except SemanticError:
-                # If accessing the method raises a SemanticError, log the error.
-                self.errors.append(f'Method "{node.function.identifier}" is not defined in {self.current_type.name}')
+                if object_t != IntrinsicType():
+                    # If accessing the method raises a SemanticError, log the error.
+                    self.errors.append(f'Method "{node.function.identifier}" is not defined in {self.current_type.name}')
+                return IntrinsicType()
         else:
             return ErrorType()
 
@@ -369,10 +420,8 @@ class TypeInferer:
         for_var = node.exp.scope.find_variable(node.var.identifier)
 
         # Check if the inferred type of the expression is an ErrorType, indicating an error.
-        if iter_t is ErrorType():
-            for_var.type = ErrorType()
-        elif iter_t == IntrinsicType():
-            for_var.type = IntrinsicType()  # Assign AutoType if the expression type is auto-determined.
+        if iter_t is ErrorType() or iter_t == IntrinsicType():
+            for_var.type = iter_t 
         elif not iter_t.conforms_to(self.context.get_type('Iterable')):
             # Append an error message if the inferred type does not conform to 'Iterable'.
             self.errors.append(f'Expression is not iterable.')
@@ -383,16 +432,6 @@ class TypeInferer:
 
         return self.visit(node.body)  # Visit the body of the loop to infer and return its type.
 
-        # try:
-        #     # print("FOR NODE. TRYING", iter_t)
-        #     var_t = self.context.get_type(node.var.identifier)
-        # except SemanticError as e:
-        #     # print("FOR NODE. ERROR", e)
-        #     # self.errors.append(f'Variable "{node.var.identifier}" is not defined.')
-        #     var_t = AutoType()
-        #
-        # return self.visit(node.body)
-
     @visitor.when(LetNode)
     def visit(self, node: LetNode):
         for decl in node.var_decl:
@@ -401,7 +440,7 @@ class TypeInferer:
 
     @visitor.when(AssignNode)
     def visit(self, node: AssignNode):
-        if node.identifier == 'self':
+        if node.identifier == 'self':  #Could cause error because should be node.identifier.identifier
             # Prevent assignment to the special 'self' identifier, which is reserved for object instances.
             self.errors.append('Cannot assign to "self".')
             return self.current_type
@@ -411,34 +450,33 @@ class TypeInferer:
             # If the variable is not found in the current scope, log an error and return an ErrorType.
             self.errors.append(f'Variable "{node.identifier}" is not defined.')
             return ErrorType()
-
-        # Proceed to visit the expression on the right-hand side of the assignment.
-        return self.visit(node.exp)
+        
+        exp_t = self.visit(node.exp)
+        if var.type.name != IntrinsicType().name:
+            return var.type
+        var = node.scope.find_variable(var.name)
+        var.type = exp_t
+        
+        return exp_t
 
     @visitor.when(NewNode)
     def visit(self, node: NewNode):
         try:
             # Attempt to retrieve the type from the context using the node's type_name."
-            new_t = self.context.get_type(node.type_name)
+            new_t = self.context.get_type(node.identifier)
             args_t = [self.visit(arg) for arg in node.args]            
         except SemanticError:
             # If the type cannot be found in the context, log an error and return an ErrorType.
-            self.errors.append(f'Type "{node.type_name}" is not defined.')
+            # self.errors.append(f'Type "{node.type_name}" is not defined.')
             return ErrorType()
         
         if new_t is ErrorType():
             return ErrorType()
 
-        # region FIX THIS
-        # Agregar codigo para asignar autotype (negro code)
-
-        for i, param_t in enumerate(new_t.params_types):
-            if len(args_t <= i):
-                break
-            if param_t == IntrinsicType() and not param_t is ErrorType():
-                # region FIX THIS
-                self.upd = True
-
+        newt_attr = [attr for attr in new_t.attributes if (attr.name.startswith('PS') and attr.name.endswith('PE'))]
+        if len(args_t) != len(newt_attr):
+            self.errors.append(f'Error while instantiating type. Expected {len(newt_attr)} arguments but got {len(args_t)} in "{node.type_name}"')
+            return ErrorType()
        
         return new_t
 
@@ -447,35 +485,30 @@ class TypeInferer:
         object_t = self.visit(node.exp)
         index_t = self.visit(node.index)
 
-        if object_t is not ErrorType():
-            try:
-                # Check if the object's type is not an error type.
-                # If it's a valid type, return the type of the attribute.
-                return object_t.get_attribute('current').type
-            except SemanticError:
-                # If accessing the attribute raises a SemanticError, log the error.
-                self.errors.append(f'Attribute "current" is not defined in {self.current_type.name}.')
-        return ErrorType()
+        if not isinstance(object_t, VectorType):
+            self.errors.append(f'Indexing is only supported on vectors.')
+            return ErrorType()
+        return object_t.element_type
 
     @visitor.when(VectorNode)
     def visit(self, node: VectorNode):
-        item_t = []
-
-        for exp in node.exp_list:
-            item_t.append(self.visit(exp))
-        # AAAAAAA
-        # NO SE QUE HACER AQUI
-        return ErrorType()
+        item_t = [self.visit(exp) for exp in node.exp_list]
+        fca = get_fca(item_t)
+        if type(fca) == ErrorType():
+            return ErrorType()
+        vtype = VectorType(fca)
+        vtype.set_parent(self.context.get_type('Iterable'))
+        return vtype
 
     @visitor.when(VectorComprNode)
     def visit(self, node: VectorComprNode):
         it_t = self.visit(node.iter_exp)
 
         if not it_t.conforms_to(self.context.get_type('Iterable')):
-            self.errors.append(f'Expression is not iterable.')
+            self.errors.append(f'Expression is not iterable because it does not conform to Iterable Protocol')
             return ErrorType()
 
         ret_t = self.visit(node.exp)
         if ret_t is ErrorType():
             return ErrorType()
-        return self.context.get_type(f'Vector<{ret_t.name}>')  # ESTO NO VA A FUNCIONAR
+        return VectorType(ret_t)
