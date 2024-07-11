@@ -5,7 +5,6 @@ sys.path.append('/home/carlosbreso/Data/Code/Python/HulkCompiler/Hulk/src/'
 import cmp.visitor as visitor
 from cmp.ast_for_hulk import *
 from cmp.semantic import *
-from interpreter.mytools import *
 from random import uniform
 
 def getBody(body):
