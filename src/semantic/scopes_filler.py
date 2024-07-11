@@ -49,9 +49,9 @@ class ScopesFiller:
 
     @visitor.when(FunctionNode)
     def visit(self, node: FunctionNode, scope: Scope):
-        node.scope = scope
-        f_scope = scope.create_child()
-
+        # print(node.line)
+        node.scope = f_scope = scope.create_child()
+        
         for param in node.params:
             try:
                 f_scope.define_variable(param.identifier, self.context.get_type(param.type_name))
@@ -66,7 +66,11 @@ class ScopesFiller:
     def visit(self, node: TypeNode, scope: Scope):
         node.scope = scope
         t_scope = scope.create_child()
-        self.current_type = self.context.get_type(node.identifier)
+        try: 
+            self.current_type = self.context.get_type(node.identifier)
+        except:
+            # self.errors.append(f"Type {node.identifier} not found.")
+            self.current_type = ErrorType()
 
         if self.current_type is ErrorType():
             return
@@ -114,7 +118,11 @@ class ScopesFiller:
     def visit(self, node: ProtocolNode, scope: Scope):
         node.scope = scope
         p_scope = scope.create_child()
-        current_protocol:Protocol = self.context.get_protocol(node.identifier)
+        try:
+            current_protocol:Protocol = self.context.get_protocol(node.identifier)
+        except SemanticError as ex:
+            # self.errors.append(ex.text)
+            current_protocol = ErrorType()
         if current_protocol is ErrorType():
             return
         if current_protocol.parent is not None:

@@ -21,8 +21,9 @@ class Attribute:
 
 
 class Method:
-    def __init__(self, name, param_names, params_types, return_type):
+    def __init__(self, name, param_names, params_types, return_type, node = None):
         self.name = name
+        self.nonde = node
         self.param_names = param_names
         self.param_types = params_types
         self.return_type = return_type
@@ -352,15 +353,20 @@ class Scope:
 
     def define_variable(self, vname, vtype):
         info = VariableInfo(vname, vtype)
+        if self.is_local(vname):
+            raise SemanticError(f'Variable "{vname}" already defined in scope')
         self.locals.append(info)
         return info
 
     def find_variable(self, vname, index=None):
-        locals = self.locals if index is None else itt.islice(self.locals, index)
+        locals = self.locals
         try:
             return next(x for x in locals if x.name == vname)
         except StopIteration:
-            return self.parent.find_variable(vname, self.index) if self.parent is None else None
+            if self.parent is not None:
+                return self.parent.find_variable(vname, self.index) 
+            else:
+                raise SemanticError(f'Variable "{vname}" not found in scope')
 
     def is_defined(self, vname):
         return self.find_variable(vname) is not None

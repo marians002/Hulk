@@ -21,8 +21,7 @@ class TypeCollector(object):
 
         # Object Type 
         type_obj = self.context.create_type('Object')
-        type_obj.define_method('equals', ['other'], [type_obj], type_bool)
-        type_obj.define_method('toString', [], [], type_str)
+        
 
 
         # Number Type        
@@ -38,6 +37,10 @@ class TypeCollector(object):
         type_str.define_method('current', [], [], type_str)
         type_str.define_method('next', [], [], type_bool)
         type_str.define_method('size', [], [], type_num)
+
+        # Object Methods
+        type_obj.define_method('equals', ['other'], [type_obj], type_bool)
+        type_obj.define_method('toString', [], [], type_str)
 
         # Function Type
         self.context.create_type("Function")

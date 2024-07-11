@@ -131,7 +131,7 @@ class TypeBuilder(object):
                             self.errors.append(f"Type '{self.current_type.name}' cannot inherit from itself")
                             parent = ErrorType()  # Use ErrorType to indicate an error in the type system.
                             break
-                        curr = curr.inherits  # Move up the inheritance chain.
+                        curr = curr.parent  # Move up the inheritance chain.
 
                 except SemanticError as ex:
                     # If a SemanticError occurs (e.g., the parent type does not exist), log the error message.

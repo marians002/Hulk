@@ -116,7 +116,6 @@ statement_list %= statement + statement_list, lambda h, s: [s[1]] + s[2]
 statement_list %= statement, lambda h, s: [s[1]]
 statement_list %= simple_exp, lambda h,s:[s[1]]
 
-# region BORRAR
 simple_exp %= destructive_assign, lambda h, s:s[1]
 simple_exp %= let + var_decl + inx + expression, lambda h, s: LetNode(s[2], s[4])
 simple_exp %= whilet + opar + condition + cpar + expression, lambda h, s: WhileNode(s[3], s[5])
@@ -132,10 +131,10 @@ single_exp %= concat_exp + asx + identifier, lambda h, s: AsNode(s[1], s[3])
 elifn %= G.Epsilon, lambda h, s: []
 elifn %= elift + opar + condition + cpar + expression + elifn, lambda h, s: [(s[3], s[5])] + s[6]
 
-var_decl %= identifier + equal + simple_exp, lambda h, s: [DeclareVarNode(s[1], None, s[3])]
-var_decl %= identifier + equal + simple_exp + comma + var_decl, lambda h, s: [DeclareVarNode(s[1], None, s[3])] + s[5]
-var_decl %= identifier + colon + identifier + equal + simple_exp, lambda h, s: [DeclareVarNode(s[1], s[3], s[5])]
-var_decl %= identifier + colon + identifier + equal + simple_exp + comma + var_decl, lambda h, s: [DeclareVarNode(s[1], s[3], s[5])] + s[7]
+var_decl %= identifier + equal + expression, lambda h, s: [DeclareVarNode(s[1], None, s[3])]
+var_decl %= identifier + equal + expression + comma + var_decl, lambda h, s: [DeclareVarNode(s[1], None, s[3])] + s[5]
+var_decl %= identifier + colon + identifier + equal + expression, lambda h, s: [DeclareVarNode(s[1], s[3], s[5])]
+var_decl %= identifier + colon + identifier + equal + expression + comma + var_decl, lambda h, s: [DeclareVarNode(s[1], s[3], s[5])] + s[7]
 
 concat_exp %= condition, lambda h, s: s[1]
 concat_exp %= concat_exp + at + condition, lambda h, s: ConcatNode(s[1], s[3])

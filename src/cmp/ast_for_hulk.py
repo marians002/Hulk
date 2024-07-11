@@ -1,5 +1,7 @@
 class Node:
     scope=None
+    line='0'
+    columna = '0'
 
 
 class ProgramNode(Node):

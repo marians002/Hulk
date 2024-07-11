@@ -64,7 +64,7 @@ HULK_TOKENS = [
     
     (identifier, '[_a-zA-Z][_a-zA-Z0-9]*'),        
     (number, '(0|[1-9]([0-9])*)(\.[0-9]+)?'),
-    (string, '"([\x00-!#-\x7f]|\\\\")*"'), 
+    (string, '("([\x00-!#-\x7f]|\\\\")*"|\\"([\x00-!#-\x7f]|\\\\")*\\"")'), 
     (boolean, 'true|false'),
     ("space", ' '),
     ("endofline", '\n'),
