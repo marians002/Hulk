@@ -13,7 +13,6 @@ class TypeCollector(object):
     @visitor.on('node')
     def visit(self, node):
         pass
-
     @visitor.when(ProgramNode)
     def visit(self, node: ProgramNode):
         self.context = Context()
