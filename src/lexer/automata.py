@@ -1,12 +1,7 @@
 import sys
-sys.path.append('/home/marian/Documents/MATCOM/Compilación/Hulk Repo/Hulk/')
-from src.cmp.utils import ContainerSet
-from src.cmp.utils import DisjointSet
-
-# from ..cmp import ContainerSet
-# from ..cmp import DisjointSet
-
-
+sys.path.append('/home/carlosbreso/Data/Code/Python/HulkCompiler/Hulk/src/')
+from cmp.utils import ContainerSet
+from cmp.utils import DisjointSet
 
 class NFA:
     def __init__(self, states: int, finals: list[int], transitions: dict[(int, str), list[int]], start: int = 0):
