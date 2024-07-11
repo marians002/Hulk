@@ -379,9 +379,9 @@ def get_fca(types: list[Type]):
     if any(isinstance(item, ErrorType) for item in types):
         return ErrorType()
 
-    # check AUTO_TYPE
-    # if any(isinstance(item, AutoType) for item in types):
-    #     return AutoType()
+    # check IntrinsicType:
+    if any(isinstance(item, IntrinsicType) for item in types):
+        return IntrinsicType()
 
     current = types[0]
     while current:
@@ -394,3 +394,19 @@ def get_fca(types: list[Type]):
 
     # This part of the code is supposed to be unreachable
     return None
+
+def get_common_type(types: list[Type]):
+    if not types:
+        return ErrorType()
+    if any(isinstance(item, IntrinsicType) for item in types):
+        return IntrinsicType()
+    if any(isinstance(item, ErrorType) for item in types):
+        return ErrorType()
+
+    current = types[0]
+    for item in types[1:]:
+        if item.conforms_to(current):
+            current = item
+        elif not current.conforms_to(item):
+            raise SemanticError(f'Cannot find a common type for {", ".join(x.name for x in types)}')
+    return current

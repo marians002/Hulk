@@ -80,15 +80,15 @@ class TypeCollector(object):
         try:
             self.context.create_type(node.identifier)
         except SemanticError as ex:
-            self.errors.append(ex.text)
+            self.errors.append(ex)
             self.context.create_type(f'<error>{node.identifier}')
             node.identifier = f'<error>{node.identifier}'
 
     @visitor.when(ProtocolNode)
     def visit(self, node: ProtocolNode):
         try:
-            self.context.create_type(node.identifier)
+            self.context.create_protocol(node.identifier)
         except SemanticError as ex:
-            self.errors.append(ex.text)
+            self.errors.append(ex)
             self.context.create_type(f'<error>{node.identifier}')
             node.identifier = f'<error>{node.identifier}'

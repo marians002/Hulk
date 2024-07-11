@@ -30,8 +30,8 @@ class ScopesFiller:
     def __init__(self, context, errors=None):
         if errors is None:
             errors = []
-        self.context = context
-        self.current_type = None
+        self.context: Context = context
+        self.current_type: Type = None
         self.errors = errors
 
     @visitor.on('node')
@@ -70,30 +70,43 @@ class ScopesFiller:
 
         if self.current_type is ErrorType():
             return
-        
-        # MANEJAR PARAMETROS DEL PADRE
-        
-        # region TYPE NODE
-        
-        
-        
-        
-        
-        
-        # region FIX THIS
 
         for param in node.params:
             try:
                 t_scope.define_variable(param.identifier, self.context.get_type(param.identifier))
             except SemanticError:
                 node.scope.define_variable(param.identifier, IntrinsicType())
-        for attr in node.attr_list:
-            self.visit(attr, t_scope)
+
+        if node.inherits:
+            try:
+                parent_type = self.context.get_type(node.inherits)
+                if parent_type is not ErrorType():
+                    try:
+                        self.current_type.set_parent(parent_type)
+                    except SemanticError as ex:
+                        self.errors.append(ex.text)
+                    
+            except SemanticError as ex:
+                self.errors.append(ex.text)
+
+            self.visit(node.inherits, t_scope)
+
+            for param in node.inherits.params:
+                try:
+                    t_scope.define_variable(param.identifier, self.context.get_type(param.type_name))
+                except SemanticError as ex:
+                    if param.type_name:
+                        self.errors.append(f"Type {param.type_name} not found.")
+                    t_scope.define_variable(param.identifier, IntrinsicType())
+        
+        self.visit([attr for attr in node.attr_list if isinstance(attr, DeclareVarNode)], t_scope.create_child())
         
         # Manejar self:
         m_scope = scope.create_child()
         m_scope.define_variable('self', SelfType(self.current_type))
-        # methods = [method for method in node.attr_list if isinstance...]
+        methods = [method for method in node.attr_list if isinstance(method, FunctionNode)]
+        for method in methods:
+            self.visit(method, m_scope.create_child)
         
         self.current_type = None
 
@@ -101,23 +114,36 @@ class ScopesFiller:
     def visit(self, node: ProtocolNode, scope: Scope):
         node.scope = scope
         p_scope = scope.create_child()
-        self.current_type = self.context.get_type(node.identifier)
-        for method in node.method_decl_col:
-            self.visit(method, p_scope)
-        self.current_type = None
+        current_protocol:Protocol = self.context.get_protocol(node.identifier)
+        if current_protocol is ErrorType():
+            return
+        if current_protocol.parent is not None:
+            for method in node.method_decl_col:
+                try:
+                    m = current_protocol.get_method(method.identifier)
+                    self.errors.append(f'Method {method.identifier} already defined in an ancestor.')
+                except:
+                    pass
+                self.visit(method, p_scope)
+            self.current_type = None
 
     @visitor.when(DeclareVarNode)
     def visit(self, node: DeclareVarNode, scope: Scope):
-        node.scope = scope
-        try:
-            type = self.context.get_type(node.type_name)
-        except SemanticError:
-            if node.type_name:
-                self.errors.append(f"Type {node.type_name} not found.")
+        self.visit(node.value, scope.create_child())
+        node.scope = scope.create_child()
+
+        if node.type_name:
+
+            try:
+                type = self.context.get_type(node.type_name)
+            except SemanticError:
+                if node.type_name:
+                    self.errors.append(f"Type {node.type_name} not found.")
+                type = IntrinsicType()
+        else:
             type = IntrinsicType()
 
-        scope.define_variable(node.identifier, type)
-        self.visit(node.value, scope.create_child())
+        node.scope.define_variable(node.identifier, type)
 
     @visitor.when(BlockNode)
     def visit(self, node: BlockNode, scope: Scope):
@@ -271,7 +297,6 @@ class ScopesFiller:
     @visitor.when(PropCallNode)
     def visit(self, node: PropCallNode, scope: Scope):
         node.scope = scope
-        # print("visit del property call node")
         self.visit(node.exp, scope.create_child())
         self.visit(node.function, scope.create_child())
 
