@@ -18,14 +18,8 @@ class TypeInferer:
         self.errors = errors
         self.current_function = None
         self.current_type = None
-        self.i = 0
-        self.max_i = 3
+        self.upd = False
 
-    def valid_iters(self):
-        if self.i < self.max_i:
-            self.i += 1
-            return True
-        return False
 
     @visitor.on('node')
     def visit(self, node):
@@ -37,7 +31,8 @@ class TypeInferer:
             self.visit(decl)
         self.visit(node.global_exp)
 
-        if self.valid_iters():
+        if self.upd:
+            self.upd = False
             self.visit(node)
 
         return self.context, self.errors
@@ -299,6 +294,13 @@ class TypeInferer:
             # The result of visiting (type inference or other processing) is appended to args_t.
             args_t.append(self.visit(arg))
 
+        function = node.identifier
+        current = 'Function'
+
+        if node.identifier == 'base':
+            current = self.current_type.parent.name
+            function = self.current_function
+
         try:
             # Attempt to retrieve the function definition from the context using the node's identifier.
             # This includes getting the function's type and method details.
@@ -417,30 +419,28 @@ class TypeInferer:
     def visit(self, node: NewNode):
         try:
             # Attempt to retrieve the type from the context using the node's type_name."
-            t = self.context.get_type(node.type_name)
-            args_t = []
-            for arg in node.args:
-                args_t.append(self.visit(arg))
+            new_t = self.context.get_type(node.type_name)
+            args_t = [self.visit(arg) for arg in node.args]            
         except SemanticError:
             # If the type cannot be found in the context, log an error and return an ErrorType.
             self.errors.append(f'Type "{node.type_name}" is not defined.')
             return ErrorType()
-
-        t_attr = []
-        for attr in t.attributes:
-            if attr.name.startswith('IN') and attr.name.endswith('ESP'):
-                t_attr.append(attr)
-        if len(args_t) != 0 and len(args_t) != len(t_attr):
-            self.errors.append(f'Expected {len(t_attr)} arguments, but {len(args_t)} were provided.')
+        
+        if new_t is ErrorType():
             return ErrorType()
 
-        for _, attr in zip(args_t, t_attr):
-            try:
-                self.context.get_type(attr.type.name)
-            except SemanticError:
-                self.errors.append(f'Type "{attr.type.name}" is not defined.')
-                return ErrorType()
-        return t
+        # region FIX THIS
+        # Agregar codigo para asignar autotype (negro code)
+
+        for i, param_t in enumerate(new_t.params_types):
+            if len(args_t <= i):
+                break
+            if param_t == IntrinsicType() and not param_t is ErrorType():
+                # region FIX THIS
+                self.upd = True
+
+       
+        return new_t
 
     @visitor.when(IndexNode)
     def visit(self, node: IndexNode):

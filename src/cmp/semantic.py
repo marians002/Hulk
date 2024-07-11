@@ -185,6 +185,27 @@ class SelfType(Type):
         return isinstance(other, SelfType) or other.name == self.name
 
 
+#region VectorType
+class VectorType(Type):
+    def __init__(self, element_type):
+        super().__init__('Vector')
+        self.element_type = element_type
+
+    def conforms_to(self, other):
+        if isinstance(other, VectorType):
+            return self.element_type.conforms_to(other.element_type)
+        return super().conforms_to(other)
+
+    def __eq__(self, other):
+        return isinstance(other, VectorType) and self.element_type == other.element_type
+
+    def __str__(self):
+        return f'Vector of {self.element_type.name}'
+
+    def __repr__(self):
+        return str(self)
+
+
 class Context:
     def __init__(self):
         self.types = {}
@@ -220,7 +241,7 @@ class Scope:
         self.parent = parent
         self.children = []
         self.index = 0 if parent is None else len(parent)
-        self.ret_type = Type('Object')
+        self.ret_type = IntrinsicType()
 
     def __len__(self):
         return len(self.locals)

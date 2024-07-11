@@ -1,4 +1,5 @@
 import sys
+
 sys.path.append('/home/marian/Documents/MATCOM/Compilación/Hulk Repo/Hulk/src/')
 from type_collector import *
 from type_builder import *
@@ -29,8 +30,7 @@ let pt = new Point(3,4) in {
     new PolarP(1,2);
     print("x: " @ pt.getX() @ "; y: " @ pt.getY());
 }
-"""       
-
+"""
 
 
 def run_pipeline(G, table, text):
@@ -38,7 +38,7 @@ def run_pipeline(G, table, text):
     print(text)
 
     print('================== TOKENIZING =====================')
-    
+
     HulkLexer = Lexer(table, G.EOF)
     tokens = HulkLexer(text)
 
@@ -50,17 +50,16 @@ def run_pipeline(G, table, text):
     print('\n'.join(repr(x) for x in parse))
     print('==================== AST ======================')
     ast = evaluate_reverse_parse(parse, operations, tokens)
-      
+
     print('============== COLLECTING TYPES ===============')
     errors = []
     collector = TypeCollector(errors)
     context, errors = collector.visit(ast)
-    # context = collector.context
     print('Errors:', errors)
     print('Context:')
     print(context)
     print(ast)
-    
+
     print('=============== BUILDING TYPES ================')
     builder = TypeBuilder(context, errors)
     print('AST type:', type(ast))
@@ -71,7 +70,7 @@ def run_pipeline(G, table, text):
     print(']')
     print('Context:')
     print(context)
-    
+
     print('=============== FILLING SCOPES ================')
     filler = ScopesFiller(context, errors)
     scope = filler.visit(ast)
@@ -84,7 +83,7 @@ def run_pipeline(G, table, text):
     print('================== INFERING TYPES ==================')
     inferer = TypeInferer(context, errors)
     inferer.visit(ast)
-    context, errors = inferer.context,  inferer.errors
+    context, errors = inferer.context, inferer.errors
 
     print('Errors: [')
     for error in errors:
