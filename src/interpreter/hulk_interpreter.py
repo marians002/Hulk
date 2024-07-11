@@ -275,7 +275,7 @@ class Interpreter:
     
     @visitor.when(VarNode)
     def visit(self, node: VarNode, scope: Scope):
-        return (scope.find_variable(node.identifier)).value
+        return scope.find_variable(node.identifier).type
     
     # not working yet
     @visitor.when(NewNode)
@@ -312,20 +312,21 @@ class Interpreter:
     
     @visitor.when(InvoqueFuncNode)
     def visit(self, node: InvoqueFuncNode, scope: Scope):
-        #Search function definition
-        function = self.context.get_function(node.identifier)
         
         # Evaluate arguments
         args = []
         for arg in to_list(node.args):
             arg = self.get_last_value(arg, function_scope)
             args.append(arg)
-        
-        # try to get a build-in func
-        build_in_func = self.get_build_in_func(function.name)
-        
-        if build_in_func != None:
-            return build_in_func(*args)
+
+        #Search function definition
+        try:
+            function = self.context.get_function(node.identifier)
+        except:
+            # try to get a build-in func
+            build_in_func = self.get_build_in_func(function.name)            
+            if build_in_func != None:
+               return build_in_func(*args)
         
         # Assign params
         function_scope = scope.create_child()
@@ -394,7 +395,7 @@ class Interpreter:
     @visitor.when(ProductNode)
     def visit(self, node, scope: Scope):
         left_value, right_value = self.get_brothers(node, scope)
-        return left_value * right_value#
+        return left_value * right_value
     
     @visitor.when(DivisionNode)
     def visit(self, node, scope: Scope):
@@ -474,16 +475,15 @@ class Interpreter:
     def get_type(self, value):
         value_type: Type = None
         if isinstance(value, bool):
-            value_type = self.types['bool']
+            value_type = self.context.get_type("Boolean")
         elif isinstance(value, str):
-            value_type = self.types['string']
+            value_type = self.context.get_type("String")
         elif isinstance(value, int) or isinstance(value, float):
-            value_type = self.types['number']
+            value_type = self.context.get_type("Number")
         else:
-            value_type_name = value.type_name
+            value_type = value.type_name
 
-            self.types[value.type_name]
-        return self.types[value.type_name]
+        return value_type
     
     def get_brothers(self, node, scope):
         left_body = to_list(node.left)
