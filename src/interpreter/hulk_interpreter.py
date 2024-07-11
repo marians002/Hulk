@@ -31,7 +31,7 @@ class Interpreter:
     
     @visitor.when(ProgramNode)
     def visit(self, node: ProgramNode):
-        program_scope = self.context.scope
+        program_scope = node.scope
 
         statements = to_list(node.statement_seq)
         for stat in statements:
@@ -93,11 +93,11 @@ class Interpreter:
         self.current_props = {}
         self.current_funcs = {}
     
-    @visitor.when(TypePropertyNode)
-    def visit(self, node: TypePropertyNode, scope: Scope):
-        body = to_list(node.exp)
-        prop_value = self.get_last_value(body, scope)
-        return prop_value
+    # @visitor.when(InvoqueFuncNode)
+    # def visit(self, node: InvoqueFuncNode, scope: Scope):
+    #     body = to_list(node.exp)
+    #     prop_value = self.get_last_value(body, scope)
+    #     return prop_value
     
     @visitor.when(FunctionNode)
     def visit(self, node: FunctionNode, scope: Scope):
@@ -280,35 +280,35 @@ class Interpreter:
     # not working yet
     @visitor.when(NewNode)
     def visit(self, node: NewNode, scope: Scope):
+        return None
+        # args = []
+        # node_args = to_list(node.args)
         
-        args = []
-        node_args = to_list(node.args)
-        
-        for arg in node_args:
-            body = to_list(arg)
-            value = self.get_last_value(body, scope)
-            args.append(value)
+        # for arg in node_args:
+        #     body = to_list(arg)
+        #     value = self.get_last_value(body, scope)
+        #     args.append(value)
 
-        args = tuple(args)
-        current_type = self.context.get_type(node.type_name)
+        # args = tuple(args)
+        # current_type = self.context.get_type(node.type_name)
         
-        #get type
-        _type : Type = self.context.get_type(node.type_name)
-        # Recorrer el cuerpo de un type
-        type_scope = scope.create_child()
+        # #get type
+        # _type : Type = self.context.get_type(node.type_name)
+        # # Recorrer el cuerpo de un type
+        # type_scope = scope.create_child()
         # Assign params
-        for idx in range(len(args)):
-            var_name = tipo.param_names[idx]
-            var_value = args[idx]
-            function_scope.define_variable(var_name, var_value)
+        # for idx in range(len(args)):
+        #     var_name = tipo.param_names[idx]
+        #     var_value = args[idx]
+        #     function_scope.define_variable(var_name, var_value)
         
-        # Enter function body
-        body = to_list(function.body)
+        # # Enter function body
+        # body = to_list(function.body)
         
-        return_value = self.get_last_value(body, function_scope)
+        # return_value = self.get_last_value(body, function_scope)
         
-        instance = current_type(*args)
-        return instance
+        # instance = current_type(*args)
+        # return instance
     
     @visitor.when(InvoqueFuncNode)
     def visit(self, node: InvoqueFuncNode, scope: Scope):

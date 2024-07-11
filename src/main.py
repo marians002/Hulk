@@ -1,11 +1,11 @@
 import sys
-sys.path.append('/home/carlosbreso/Data/Code/Python/HulkCompiler/Hulk/src/')
-from type_collector import *
-from type_builder import *
-from scopes_filler import *
-from type_inferer import *
-from type_checker import *
-from format_visitor import *
+sys.path.append('/home/marian/Documents/MATCOM/Compilación/Hulk Repo/Hulk/src/')
+from semantic.type_collector import *
+from semantic.type_builder import *
+from semantic.scopes_filler import *
+from semantic.type_inferer import *
+from semantic.type_checker import *
+from semantic.format_visitor import *
 from cmp.grammar import *
 from cmp.utils import Token
 from parser.ParserLR1 import LR1Parser
@@ -13,8 +13,9 @@ from cmp.evaluation import evaluate_reverse_parse
 from lexer.lexer_generator import Lexer
 from lexer.hulk_tokens import HULK_TOKENS
 from cmp.pycompiler import Grammar
+from interpreter.hulk_interpreter import *
 
-text_hulk = """ print("The meaning of life is " @ 42); """
+text_hulk = """ print(42); """
 
 
 def run_pipeline(G, table, text):
@@ -86,7 +87,12 @@ def run_pipeline(G, table, text):
     for error in errors:
         print('\t', error)
     print(']')
-    return True
+    
+
+    print('================== AST INTERPRETER ==================')
+    interpreter = Interpreter(context.types)
+    value = interpreter.visit(ast)
+    print(value)
 
 
 if __name__ == '__main__': ast = run_pipeline(G, HULK_TOKENS, text_hulk)

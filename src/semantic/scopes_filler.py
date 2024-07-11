@@ -1,6 +1,6 @@
 import sys
 
-sys.path.append('/home/carlosbreso/Data/Code/Python/HulkCompiler/Hulk/src/')
+sys.path.append('/home/marian/Documents/MATCOM/Compilación/Hulk Repo/Hulk/src/')
 from cmp import visitor
 from cmp.ast_for_hulk import *
 from cmp.semantic import *
