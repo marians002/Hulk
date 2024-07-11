@@ -219,6 +219,7 @@ class TypeInferer:
     @visitor.when(ConcatNode)
     def visit(self, node: ConcatNode):
         left_t = self.visit(node.left_exp)
+        print(left_t.name)
         right_t = self.visit(node.right_exp)
         return self.context.get_type('String')
 
