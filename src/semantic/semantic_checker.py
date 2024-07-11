@@ -1,6 +1,5 @@
 import sys
-
-sys.path.append('/home/marian/Documents/MATCOM/Compilación/Hulk Repo/Hulk/src/')
+sys.path.append('/home/carlosbreso/Data/Code/Python/HulkCompiler/Hulk/src/')
 from type_collector import *
 from type_builder import *
 from scopes_filler import *
