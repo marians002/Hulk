@@ -6,7 +6,7 @@ from cmp.semantic import *
 
 
 def check_id(node):
-    return node.identifier.startswith('<error')
+    return node.identifier.startswith('<error>')
 
 
 class TypeInferer:
@@ -60,7 +60,7 @@ class TypeInferer:
         # Set the function's return type in its scope. If a specific return type is declared
         # and it's not 'Object', use the declared type.
         # Otherwise, use the inferred type from the function body.
-        if node.ret_type and node.ret_type != self.context.get_type('Object'):
+        if node.ret_type and node.ret_type != IntrinsicType():
             node.scope.ret_type = self.context.get_type(node.ret_type)
         else:
             node.scope.ret_type = b_type
