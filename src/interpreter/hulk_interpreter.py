@@ -312,7 +312,8 @@ class Interpreter:
     
     @visitor.when(InvoqueFuncNode)
     def visit(self, node: InvoqueFuncNode, scope: Scope):
-        
+        # Assign params
+        function_scope = scope.create_child()
         # Evaluate arguments
         args = []
         for arg in to_list(node.args):
@@ -328,8 +329,7 @@ class Interpreter:
             if build_in_func != None:
                return build_in_func(*args)
         
-        # Assign params
-        function_scope = scope.create_child()
+        
         for idx in range(len(args)):
             var_name = function.param_names[idx]
             var_value = args[idx]
