@@ -1,3 +1,9 @@
+from pathlib import Path
+
+print()
+print(Path(__file__))
+print()
+
 import sys
 sys.path.append('/home/marian/Documents/MATCOM/Compilación/Hulk Repo/Hulk/src/')
 from semantic.type_collector import *
