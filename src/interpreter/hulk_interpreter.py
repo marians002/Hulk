@@ -6,6 +6,7 @@ import cmp.visitor as visitor
 from cmp.ast_for_hulk import *
 from cmp.semantic import *
 from interpreter.mytools import *
+from random import uniform
 
 def getBody(body):
     # Para recorrer lista o 
@@ -19,8 +20,9 @@ class Interpreter:
         self.context: Context = Context()
         self.current_props = {}
         self.current_funcs = {}
-        self.current_type: TypeDefNode = None
-        self.current_func: TypeFuncDefNode = None
+        self.current_type: TypeNode = None
+        # A method
+        self.current_func: FunctionNode = None
         self.types = types
         
     @visitor.on('node')
@@ -39,7 +41,175 @@ class Interpreter:
         body = to_list(node.expr)
         expr_value =  self.get_last_value(body, program_scope)
         return expr_value
+    ####################### DECLARATIONS ############################
+    
+    @visitor.when(TypeNode)
+    def visit(self, node: TypeNode, scope: Scope):
+        body_scope : Scope = Scope(scope)
+
+        class defined_type:
+            def __init__(self, interpreter : Interpreter,*args):
+                interpreter.current_type = node
+                self.props = {}
+                self.funcs = {}
+                self.args = list(args)
+                self.parent = None
+                self.type_name = node.id
+
+                for i in range(len(node.params)):
+                    param_name = node.params[i].token
+                    # args already evaluated
+                    param_value = self.args[i]
+                    body_scope.define_variable(param_name, param_value)
+
+                # Set parent case
+                if node.parent is not None:
+                    parent_type = interpreter.context.get_type(node.parent)
+
+                    parent_params = []
+                    for param in node.args:
+                        param = to_list(param)
+                        value = interpreter.get_last_value(param, body_scope)
+                        parent_params.append(value)
+
+                    parent_params = tuple(parent_params)
+                    self.parent = parent_type(interpreter, *parent_params)
+
+                
+                for item in node.attr_list:
+                    value = interpreter.visit(item, body_scope) 
+                    
+                    # need Ast node for methods  
+                    if item is FunctionNode:
+                        self.funcs[item.id] = value
+                        interpreter.current_funcs[item.id] = value
+                    else:
+                        self.props[item.id] = value
+                        interpreter.current_props[item.id] = value
+
+                interpreter.current_type = None
+                    
+
+        self.context.create_type(node.id, defined_type)
+        self.current_props = {}
+        self.current_funcs = {}
+    
+    @visitor.when(TypePropertyNode)
+    def visit(self, node: TypePropertyNode, scope: Scope):
+        body = to_list(node.exp)
+        prop_value = self.get_last_value(body, scope)
+        return prop_value
+    
+    @visitor.when(FunctionNode)
+    def visit(self, node: FunctionNode, scope: Scope):
+        def defined_function(scope, interpreter, current_instance, *args):
+            interpreter.current_func = node
+            interpreter.current_type = current_instance
+            
+            body_scope : Scope = Scope(scope)
+            for i in range(len(node.params)):
+                param_name = node.params[i].token
+                param_value = args[i]
+                body_scope.define_variable(param_name, param_value)
+
+            body = to_list(node.body)
+            return_value = self.get_last_value(body, body_scope)
+
+            interpreter.current_type = None
+            interpreter.current_func = None
+            return return_value
+
+        return defined_function
+    
+    @visitor.when(FunctionNode)
+    def visit(self, node: FunctionNode, scope: Scope):
+        
+        param_names = []
+        param_types = []
+        for p in to_list(node.params):
+            param_names.append(p.identifier)
+            param_types.append(p.type)
+        
+        return_type = node.ret_type
+        body = node.body
+
+        self.context.create_function(node.identifier, param_names, param_types, return_type, body)
+    
     ####################### BUILT-IN METHODS ########################
+    ####################### SIMPLE EXPRESSIONS ######################
+    
+    @visitor.when(LetNode)
+    def visit(self, node: LetNode, scope: Scope):
+        child_scope = Scope(scope)
+
+        assignations = to_list(node.assignations)
+        for assign in assignations:
+            self.visit(assign, child_scope)
+
+        body = to_list(node.body)
+        value = self.get_last_value(body, child_scope)
+        return value
+    
+    @visitor.when(IfNode)
+    def visit(self, node: IfNode, scope: Scope):
+        for condition, body in node.conditions:
+            val = self.get_last_value(condition, scope)
+            if val:
+                return_val = self.get_last_value(body, scope)
+                break
+        # return val always get assigned due to else "statement"
+        return return_val
+    
+    @visitor.when(WhileNode)
+    def visit(self, node: WhileNode, scope: Scope):
+        condition = self.visit(node.condition, scope)
+        body = to_list(node.body)
+        
+        final_value = None
+        while condition:
+            final_value = self.get_last_value(body, scope)
+            condition = self.visit(node.condition, scope)
+        
+        return final_value
+    
+    @visitor.when(ForNode)
+    def visit(self, node: ForNode, scope: Scope):
+        body_scope = Scope(scope)
+        
+        body = to_list(node.exp)
+        iterable = self.get_last_value(node.exp, scope)
+        
+        
+        body = to_list(node.body)
+        
+        body_scope.define_variable(node.var, None)
+        
+        return_value = None
+        for i in iterable:
+            body_scope.reassign_variable(node.var, i)
+            return_value = self.get_last_value(body, body_scope)
+        
+        return return_value
+    
+    ####################### ASIGN ###################################
+    
+    @visitor.when(AssignNode)
+    def visit(self, node: AssignNode, scope: Scope):
+        body = to_list(node.body)
+
+        value = self.get_last_value(body, scope)
+        #variables store its value at self.type
+        scope.define_variable(node.id, value)
+    
+    ## chequear el lio del self con la asignacion de destruccion destructor
+    @visitor.when(DeclarationNode)
+    def visit(self, node: AssignNode, scope: Scope):
+        body = to_list(node.body)
+
+        value = self.get_last_value(body, scope)
+        #variables store its value at self.type
+        scope.define_variable(node.id, value)
+    
     ####################### Type EXPRESSIONS ########################
     
     @visitor.when(IsNode)
@@ -106,20 +276,101 @@ class Interpreter:
     
     @visitor.when(VarNode)
     def visit(self, node: VarNode, scope: Scope):
-        return scope.get_value(node.identifier)
+        return (scope.find_variable(node.identifier)).value
+    
+    # not working yet
+    @visitor.when(NewNode)
+    def visit(self, node: NewNode, scope: Scope):
+        
+        args = []
+        node_args = to_list(node.args)
+        
+        for arg in node_args:
+            body = to_list(arg)
+            value = self.get_last_value(body, scope)
+            args.append(value)
+
+        args = tuple(args)
+        current_type = self.context.get_type(node.type_name)
+        
+        #get type
+        _type : Type = self.context.get_type(node.type_name)
+        # Recorrer el cuerpo de un type
+        type_scope = scope.create_child()
+        # Assign params
+        for idx in range(len(args)):
+            var_name = tipo.param_names[idx]
+            var_value = args[idx]
+            function_scope.define_variable(var_name, var_value)
+        
+        # Enter function body
+        body = to_list(function.body)
+        
+        return_value = self.get_last_value(body, function_scope)
+        
+        instance = current_type(*args)
+        return instance
     
     @visitor.when(InvoqueFuncNode)
     def visit(self, node: InvoqueFuncNode, scope: Scope):
         #Search function definition
-        function = self.context.get_func[node.identifier]
-        # visit arguments
-        function_scope = scope.create_child()
-        body = to_list[node.args]
-        self.get_last_value(body, function_scope)
+        function = self.context.get_function(node.identifier)
         
+        # Evaluate arguments
+        args = []
+        for arg in to_list(node.args):
+            arg = self.get_last_value(arg, function_scope)
+            args.append(arg)
+        
+        # try to get a build-in func
+        build_in_func = self.get_build_in_func(function.name)
+        
+        if build_in_func != None:
+            return build_in_func(*args)
+        
+        # Assign params
+        function_scope = scope.create_child()
+        for idx in range(len(args)):
+            var_name = function.param_names[idx]
+            var_value = args[idx]
+            function_scope.define_variable(var_name, var_value)
+        
+        # Enter function body
         body = to_list(function.body)
         
         return_value = self.get_last_value(body, function_scope)
+        return return_value
+    
+    @visitor.when(PropCallNode)
+    def visit(self, node: PropCallNode, scope: Scope):
+        #get instance
+        instance = to_list(node.exp)
+        instance = self.get_last_value(instance, scope)
+        #get type
+        instance_type = scope.find_variable(instance.name).type
+        type : Type= self.context.get_type(instance_type)
+        
+        f : InvoqueFuncNode = node.function
+        # Get args
+        args = []
+        for arg in to_list(f.args):
+            arg = to_list(arg)
+            value = self.get_last_value(arg, scope)
+            args.append(value)
+            
+        args = tuple(args)
+        
+        # assign args to params
+        method : Method = type.get_method(f.identifier)
+        m_scope = scope.create_child()
+        
+        for idx in range(len(args)):
+            var_name = method.param_names[idx]
+            var_value = args[idx]
+            m_scope.define_variable(var_name, var_value)
+        
+        body = to_list(method.body)
+        return_value = self.get_last_value(body, m_scope)
         return return_value
     
     ####################### ARITHMETIC ###############################
@@ -134,6 +385,7 @@ class Interpreter:
     def visit(self, node, scope: Scope):
         left_value, right_value = self.get_brothers(node, scope)
         return left_value + right_value
+    
     
     @visitor.when(MinusNode)
     def visit(self, node, scope: Scope):
@@ -199,8 +451,19 @@ class Interpreter:
     
     
     ######################### AUXILIAR METHODS ################################ 
+    def get_build_in_func(self, f_name):
+        match f_name:
+            case 'print':
+                return print
+            case 'range':
+                return range
+            case 'rand':
+                return uniform(0, 1)
+            case _:
+                return None
+    
     def get_last_value(self, body, scope):
-        #Evaluates body and return last statement value 
+        #Evaluates body and return last statement value or simply evaluates statement and return its value
         return_value = None
         for exp in body:
             if isinstance(exp, list):
@@ -231,3 +494,9 @@ class Interpreter:
         right_value = self.get_last_value(right_body, scope)
         
         return left_value, right_value
+
+def to_list(body):
+    if not isinstance(body, list):
+        return [body]
+    else:
+        return body
