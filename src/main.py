@@ -15,7 +15,7 @@ from lexer.hulk_tokens import HULK_TOKENS
 from cmp.pycompiler import Grammar
 from interpreter.hulk_interpreter import *
 
-text_hulk = """ print(42); """
+text_hulk = """ 42; """
 
 
 def run_pipeline(G, table, text):

@@ -33,11 +33,11 @@ class Interpreter:
     def visit(self, node: ProgramNode):
         program_scope = node.scope
 
-        statements = to_list(node.statement_seq)
+        statements = to_list(node.decl_list)
         for stat in statements:
             self.visit(stat, program_scope)
         
-        body = to_list(node.expr)
+        body = to_list(node.global_exp)
         expr_value =  self.get_last_value(body, program_scope)
         return expr_value
     ####################### DECLARATIONS ############################
@@ -62,8 +62,8 @@ class Interpreter:
                     body_scope.define_variable(param_name, param_value)
 
                 # Set parent case
-                if node.parent is not None:
-                    parent_type = interpreter.context.get_type(node.parent)
+                if node.inherits is not None:
+                    parent_type = interpreter.context.get_type(node.inherits)
 
                     parent_params = []
                     for param in node.args:
@@ -80,16 +80,16 @@ class Interpreter:
                     
                     # need Ast node for methods  
                     if item is FunctionNode:
-                        self.funcs[item.id] = value
-                        interpreter.current_funcs[item.id] = value
+                        self.funcs[item.identifier] = value
+                        interpreter.current_funcs[item.identifier] = value
                     else:
-                        self.props[item.id] = value
-                        interpreter.current_props[item.id] = value
+                        self.props[item.identifier] = value
+                        interpreter.current_props[item.identifier] = value
 
                 interpreter.current_type = None
                     
 
-        self.context.create_type(node.id, defined_type)
+        self.context.create_type(node.identifier, defined_type)
         self.current_props = {}
         self.current_funcs = {}
     
@@ -141,7 +141,7 @@ class Interpreter:
     def visit(self, node: LetNode, scope: Scope):
         child_scope = Scope(scope)
 
-        assignations = to_list(node.assignations)
+        assignations = to_list(node.var_decl)
         for assign in assignations:
             self.visit(assign, child_scope)
 
