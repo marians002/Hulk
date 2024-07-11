@@ -37,6 +37,67 @@ class Method:
             other.param_types == self.param_types
 
 
+class Protocol:
+    def __init__(self, name: str, node = None):
+        self.name = name
+        self.node = node
+        self.methods = []
+        self.parent = None
+
+    def set_parent(self, parent):
+        if self.parent:
+            raise SemanticError(f'Parent type is already set for {self.name}.')
+        self.parent = parent
+
+    def get_method(self, name: str):
+        try:
+            return next(method for method in self.methods if method.name == name)
+        except StopIteration:
+            if self.parent is None:
+                raise SemanticError(f'Method "{name}" is not defined in {self.name}.')
+            try:
+                return self.parent.get_method(name)
+            except SemanticError:
+                raise SemanticError(f'Method "{name}" is not defined in {self.name}.')
+            
+    def define_method(self, name: str, param_names: list, param_types: list, return_type, node=None):
+        if name in (method.name for method in self.methods):
+            raise SemanticError(f'Method "{name}" already defined in {self.name}')
+        method = Method(name, param_names, param_types, return_type, node)
+        self.methods.append(method)
+        return method
+    
+    def not_ancestor_conforms_to(self, other):
+        if not isinstance(other, Protocol):
+            return False
+        try:
+            return all(method.can_substitute_with(self.get_method(method.name)) for method in other.methods)
+        # If a method is not defined in the current type (or its ancestors), then it is not conforming
+        except SemanticError:
+            return False
+
+    def conforms_to(self, other):
+        if other == ObjectType():
+            return True
+        elif isinstance(other, Type):
+            return False
+        return self == other or (self.parent is not None and self.parent.conforms_to(
+            other)) or self._not_ancestor_conforms_to(other)
+
+    def __str__(self):
+        output = f'protocol {self.name}'
+        parent = '' if self.parent is None else f' extends {self.parent.name}'
+        output += parent
+        output += ' {'
+        output += '\n\t' if self.methods else ''
+        output += '\n\t'.join(str(x) for x in self.methods)
+        output += '\n' if self.methods else ''
+        output += '}\n'
+        return output
+
+    def __repr__(self):
+        return str(self)
+
 class Type:
     def __init__(self, name: str):
         self.name = name
@@ -159,6 +220,12 @@ class IntType(Type):
     def __eq__(self, other):
         return other.name == self.name or isinstance(other, IntType)
 
+class ObjectType(Type):
+    def __init__(self) -> None:
+        super().__init__('Object')
+
+    def __eq__(self, other):
+        return isinstance(other, ObjectType) or other.name == self.name
 
 class IntrinsicType(Type):
     def __init__(self):
@@ -209,6 +276,8 @@ class VectorType(Type):
 class Context:
     def __init__(self):
         self.types = {}
+        self.functions = {}
+        self.protocols = {}
 
     def create_type(self, name: str):
         if name in self.types:
@@ -222,8 +291,38 @@ class Context:
         except KeyError:
             raise SemanticError(f'Type "{name}" is not defined.')
 
+    def create_protocol(self, name: str, node=None):
+        if name in self.protocols:
+            raise SemanticError(f'Protocol with the same name ({name}) already in context.')
+        if name in self.types:
+            raise SemanticError(f'Type with the same name ({name}) already in context.')
+        protocol = self.protocols[name] = Protocol(name, node)
+        return protocol
+    
+    def get_protocol(self, name: str):
+        try:
+            return self.protocols[name]
+        except KeyError:
+            raise SemanticError(f'Protocol "{name}" is not defined.')
+        
+    def create_function(self, name: str, param_names: list, param_types: list, return_type, node = None):
+        if name in self.functions:
+            raise SemanticError(f'Function with the same name ({name}) already in context.')
+        function = self.functions[name] = Method(name, param_names, param_types, return_type, node)
+        return function
+    
+    def get_function(self, name: str):
+        try:
+            return self.functions[name]
+        except KeyError:
+            raise SemanticError(f'Function "{name}" is not defined.')
+
     def __str__(self):
-        return '{\n\t' + '\n\t'.join(y for x in self.types.values() for y in str(x).split('\n')) + '\n}'
+        return ('{\n\t' +
+                '\n\t'.join(y for x in self.types.values() for y in str(x).split('\n')) +
+                '\n\t'.join(y for x in self.protocols.values() for y in str(x).split('\n')) +
+                '\n\t'.join(y for x in self.functions.values() for y in str(x).split('\n')) +
+                '\n}')
 
     def __repr__(self):
         return str(self)

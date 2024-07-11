@@ -21,6 +21,9 @@ class TypeCollector(object):
 
         # Object Type 
         type_obj = self.context.create_type('Object')
+        type_obj.define_method('equals', ['other'], [type_obj], type_bool)
+        type_obj.define_method('toString', [], [], type_str)
+
 
         # Number Type        
         type_num = self.context.create_type('Number')
